@@ -1,0 +1,75 @@
+@model IEnumerable<AdminRazer.Models.Producto>
+
+@{
+    ViewData["Title"] = "Productos";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1 class="mb-4">Productos</h1>
+
+<!-- Mensajes de éxito o error -->
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["Success"]
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["Error"]
+    </div>
+}
+
+<!-- Formulario de carga de Excel y botón Crear (mejor alineados y responsive) -->
+<div class="row mb-4 align-items-start">
+    <div class="col-12 col-md-8">
+        <form asp-action="CargarExcel" method="post" enctype="multipart/form-data">
+            <div class="input-group">
+                <input type="file" name="archivoExcel" class="form-control" accept=".xlsx,.xls" required />
+                <button type="submit" class="btn btn-success">Subir Excel</button>
+            </div>
+        </form>
+    </div>
+    <div class="col-12 col-md-4 text-md-end mt-2 mt-md-0">
+        <!-- Botón para ir a la vista Create, alineado a la derecha en pantallas md+ -->
+        <a asp-action="Create" class="btn btn-primary">Crear Producto</a>
+    </div>
+</div>
+
+<!-- Tabla de productos -->
+<table class="table table-striped table-bordered mt-3">
+    <thead class="table-dark">
+        <tr>
+            <th>@Html.DisplayNameFor(model => model.Nombre)</th>
+            <th>@Html.DisplayNameFor(model => model.Categoria)</th>
+            <th>@Html.DisplayNameFor(model => model.Precio)</th>
+            <th>@Html.DisplayNameFor(model => model.Stock)</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model != null && Model.Any())
+        {
+            foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Nombre</td>
+                    <td>@item.Categoria</td>
+                    <td>@item.Precio.ToString("C")</td>
+                    <td>@item.Stock</td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Detalles</a>
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Eliminar</a>
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="5" class="text-center text-muted">No hay productos registrados.</td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,24 @@
+@model AdminRazer.Models.Cliente
+
+@{
+    ViewData["Title"] = "Detalles del Cliente";
+}
+
+<h1>Detalles del Cliente</h1>
+
+<dl class="row">
+    <dt class="col-sm-2">Nombre</dt>
+    <dd class="col-sm-10">@Model.Nombre</dd>
+
+    <dt class="col-sm-2">Documento</dt>
+    <dd class="col-sm-10">@Model.Documento</dd>
+
+    <dt class="col-sm-2">Teléfono</dt>
+    <dd class="col-sm-10">@Model.Telefono</dd>
+
+    <dt class="col-sm-2">Email</dt>
+    <dd class="col-sm-10">@Model.Email</dd>
+</dl>
+
+<a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Editar</a>
+<a asp-action="Index" class="btn btn-secondary">Volver</a>

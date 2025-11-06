@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Productos - AdminRazer</title>
+    <link rel="stylesheet" href="/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/css/site.css?v=r22M7xOahcMheWCkoVof2Nt7pQmj7mMSFKTei-SfmQ0" />
+    <link rel="stylesheet" href="/AdminRazer.styles.css?v=TPhVvJeIYScu33HVTZnsFUZ6x4cvEGkWkeh_XLgSx3c" />
+    <link rel="stylesheet" href="/css/custom-dashboard.css?v=gkkvX29lVozRdtx3hLUkW1YN0Hp08eoMwPYsmIriYTg" />
+    <!-- Bootstrap Icons CDN (ligero) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+</head>
+<body class="bg-light">
+    <header b-te4trv2zru>
+        <nav b-te4trv2zru class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+            <div b-te4trv2zru class="container">
+                <a class="navbar-brand fw-bold text-primary" href="/">AdminRazer</a>
+                <button b-te4trv2zru class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
+                    <span b-te4trv2zru class="navbar-toggler-icon"></span>
+                </button>
+
+                <div b-te4trv2zru class="collapse navbar-collapse" id="mainNavbar">
+                    <ul b-te4trv2zru class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li b-te4trv2zru class="nav-item">
+                            <a class="nav-link" href="/">Inicio</a>
+                        </li>
+                        <li b-te4trv2zru class="nav-item">
+                            <a class="nav-link" href="/Home/Privacy">Privacidad</a>
+                        </li>
+                    </ul>
+
+                    <div b-te4trv2zru class="d-flex align-items-center">
+                        <!-- 🔽 Aquí se incluye el LoginPartial para manejo de login/logout -->
+                        
+
+<ul class="navbar-nav">
+        <li class="nav-item">
+            <a class="nav-link text-dark" href="/Identity/Account/Login">Iniciar sesión</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link text-dark" href="/Identity/Account/Register">Registrarse</a>
+        </li>
+</ul>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div b-te4trv2zru class="container mt-4">
+        <main b-te4trv2zru role="main" class="pb-4">
+            
+
+<h1 class="mb-4">Productos</h1>
+
+<!-- Mensajes de éxito o error -->
+    <div class="alert alert-danger">
+        Error al procesar el archivo: The file is not a valid Package file. If the file is encrypted, please supply the password in the constructor.
+    </div>
+
+<!-- Formulario de carga de Excel -->
+<form method="post" enctype="multipart/form-data" class="mb-4" action="/Producto/CargarExcel">
+    <div class="input-group">
+        <input type="file" name="archivoExcel" class="form-control" accept=".xlsx,.xls" required />
+        <button type="submit" class="btn btn-success">Subir Excel</button>
+    </div>
+<input name="__RequestVerificationToken" type="hidden" value="CfDJ8BRnL-PLPaRBiIc_1yC-lUmgBvWtH_x9lFwCgpY21g7f0zkLBZnS5naVKL4KDgICwvFg1ZXE2g6yjLoZBcPswy07YzbfvSmTQ6cvDsxyAS48nC9ToDEzDngSD97skhyQ7MFPXMY8tRs38j5AfUmj-3g" /></form>
+
+<!-- Tabla de productos -->
+<table class="table table-striped table-bordered mt-3">
+    <thead class="table-dark">
+        <tr>
+            <th>Nombre</th>
+            <th>Categoria</th>
+            <th>Precio</th>
+            <th>Stock</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+                <tr>
+                    <td>arena</td>
+                    <td>construccion</td>
+                    <td>3.667.667,00 &#x20AC;</td>
+                    <td>4</td>
+                    <td>
+                        <a class="btn btn-sm btn-info" href="/Producto/Details/2">Detalles</a>
+                        <a class="btn btn-sm btn-danger" href="/Producto/Delete/2">Eliminar</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td>cemento</td>
+                    <td>construccion</td>
+                    <td>50.000,00 &#x20AC;</td>
+                    <td>16</td>
+                    <td>
+                        <a class="btn btn-sm btn-info" href="/Producto/Details/1">Detalles</a>
+                        <a class="btn btn-sm btn-danger" href="/Producto/Delete/1">Eliminar</a>
+                    </td>
+                </tr>
+    </tbody>
+</table>
+
+        </main>
+    </div>
+
+    <footer b-te4trv2zru class="border-top footer text-muted bg-white mt-5">
+        <div b-te4trv2zru class="container py-3 d-flex justify-content-between">
+            <div b-te4trv2zru>&copy; 2025 - AdminRazer</div>
+            <div b-te4trv2zru>
+                <a class="text-muted" href="/Home/Privacy">Privacidad</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/lib/jquery/dist/jquery.min.js"></script>
+    <script src="/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/site.js?v=y_Ngd8W21UpuCUhEqGbUKDEqFnNfTjAfb24GhJJGUyM"></script>
+    
+</body>
+</html>

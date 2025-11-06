@@ -1,0 +1,29 @@
+@model AdminRazer.Models.Cliente
+
+@{
+    ViewData["Title"] = "Editar Cliente";
+}
+
+<h1>Editar Cliente</h1>
+
+<form asp-action="Edit">
+    <input type="hidden" asp-for="Id" />
+    <div class="form-group">
+        <label asp-for="Nombre"></label>
+        <input asp-for="Nombre" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label asp-for="Documento"></label>
+        <input asp-for="Documento" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label asp-for="Telefono"></label>
+        <input asp-for="Telefono" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label asp-for="Email"></label>
+        <input asp-for="Email" class="form-control" />
+    </div>
+    <button type="submit" class="btn btn-primary mt-3">Guardar cambios</button>
+    <a asp-action="Index" class="btn btn-secondary mt-3">Volver</a>
+</form>

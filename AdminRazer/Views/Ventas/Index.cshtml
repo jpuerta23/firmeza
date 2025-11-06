@@ -1,0 +1,42 @@
+<!-- html -->
+@model IEnumerable<AdminRazer.Models.Venta>
+@{
+    ViewData["Title"] = "Ventas";
+}
+
+<h1>Ventas</h1>
+
+<div class="mb-3">
+    <form asp-controller="Ventas" asp-action="DescargarPorDia" method="get" class="form-inline d-flex gap-2">
+        <label for="fecha" class="form-label me-2">Filtrar por día:</label>
+        <input type="date" id="fecha" name="fecha" class="form-control" />
+        <button type="submit" class="btn btn-primary">Descargar PDF (día)</button>
+        <a asp-controller="Ventas" asp-action="DescargarTodas" class="btn btn-secondary">Descargar PDF (todas)</a>
+    </form>
+</div>
+
+<table class="table">
+    <thead>
+    <tr>
+        <th>Id</th>
+        <th>Fecha</th>
+        <th>Cliente</th>
+        <th>Total</th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var v in Model)
+    {
+        <tr>
+            <td>@v.Id</td>
+            <td>@v.Fecha.ToString("yyyy-MM-dd")</td>
+            <td>@(v.Cliente?.Nombre ?? "-")</td>
+            <td>@v.Total.ToString("C")</td>
+            <td>
+                <a asp-controller="Ventas" asp-action="Eliminar" asp-route-id="@v.Id" class="btn btn-danger">Eliminar</a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

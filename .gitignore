@@ -1,0 +1,43 @@
+# .gitignore para Firmeza
+
+# Rider/IDE
+.idea/
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build outputs
+bin/
+obj/
+Debug/
+Release/
+
+# Logs and runtime
+app_run.log
+app_pid.txt
+
+# Secrets and tokens
+cookies.txt
+token.txt
+
+# Database dumps and generated files
+*.dump
+*.sql
+
+# Generated test and data files
+*.xlsx
+
+# OS
+.DS_Store
+
+# npm/node
+node_modules/
+
+# Ignore Rider workspace files
+*.Iml
+
+# Keep this explicit: do not ignore source code
+!**/*.cs
+

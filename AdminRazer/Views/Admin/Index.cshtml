@@ -1,0 +1,77 @@
+@{
+    ViewData["Title"] = "Panel Administrativo";
+}
+
+<div class="header-hero mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h2 class="mb-0">Bienvenido al Panel Administrativo</h2>
+            <p class="small-muted mb-0">Selecciona una opción del menú para comenzar.</p>
+        </div>
+        <div class="text-end">
+            <div class="kpi">
+                <span class="value">@DateTime.Now.ToString("dd MMM yyyy")</span>
+                <span class="label">Última sesión</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-4">
+        <a href="/Producto" class="text-decoration-none">
+            <div class="card card-cta p-3 h-100">
+                <div class="d-flex align-items-center">
+                    <div class="icon-wrap">
+                        <i class="bi bi-box-seam"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-1">Gestionar Productos</h5>
+                        <p class="small-muted mb-0">Agregar o cargar Productos, editar o eliminar productos</p>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <button class="btn btn-primary btn-modern">Ir a Productos</button>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-4">
+        <a href="/Cliente" class="text-decoration-none">
+            <div class="card card-cta p-3 h-100">
+                <div class="d-flex align-items-center">
+                    <div class="icon-wrap">
+                        <i class="bi bi-people"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-1">Gestionar Clientes</h5>
+                        <p class="small-muted mb-0">Ver y administrar información de clientes</p>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <button class="btn btn-success btn-modern">Ir a Clientes</button>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-4">
+        <a href="/Venta" class="text-decoration-none">
+            <div class="card card-cta p-3 h-100">
+                <div class="d-flex align-items-center">
+                    <div class="icon-wrap">
+                        <i class="bi bi-receipt"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-1">Registrar Ventas</h5>
+                        <p class="small-muted mb-0"> Descargar ventas como pdf y administrar detalles</p>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <button class="btn btn-warning btn-modern">Ir a Ventas</button>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
