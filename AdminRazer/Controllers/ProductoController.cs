@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml;
 using AdminRazer.Data;
 using AdminRazer.Models;
@@ -8,6 +7,7 @@ using AdminRazer.ViewModels;
 using System.Reflection; // added for reflection
 using System.Globalization;
 using System.Text;
+using System.Diagnostics;
 
 namespace AdminRazer.Controllers
 {
@@ -31,7 +31,7 @@ namespace AdminRazer.Controllers
         // POST: Producto/CargarExcel
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CargarExcel(IFormFile archivoExcel)
+        public async Task<IActionResult> CargarExcel(IFormFile? archivoExcel)
         {
             if (archivoExcel == null || archivoExcel.Length == 0)
             {
@@ -49,7 +49,7 @@ namespace AdminRazer.Controllers
                     if (licenseProp != null)
                     {
                         var enumType = licenseProp.PropertyType;
-                        object enumValue = null;
+                        object? enumValue = null;
 
                         // Intentar varios nombres comunes para el valor de licencia 'NonCommercial'
                         string[] candidates = new[] { "NonCommercial", "NonCommercialLicense", "NonCommercialUsage" };
@@ -81,18 +81,28 @@ namespace AdminRazer.Controllers
                         var lcField = typeof(ExcelPackage).GetField("LicenseContext", BindingFlags.Static | BindingFlags.Public);
                         try
                         {
-                            object nonCommercialValue = null;
+                            object? nonCommercialValue = null;
                             try
                             {
                                 nonCommercialValue = Enum.Parse(licenseContextType, "NonCommercial");
                             }
-                            catch
+                            catch (Exception innerEx)
                             {
                                 // intentar otros nombres comunes
                                 foreach (var name in new[] { "NonCommercial", "NonCommercialUsage" })
                                 {
-                                    try { nonCommercialValue = Enum.Parse(licenseContextType, name); break; } catch { }
+                                    try
+                                    {
+                                        nonCommercialValue = Enum.Parse(licenseContextType, name);
+                                        break;
+                                    }
+                                    catch (Exception ex2)
+                                    {
+                                        Debug.WriteLine($"Intento de parse '{name}' falló: {ex2.Message}");
+                                    }
                                 }
+                                // Registrar el error inicial de parse para diagnóstico
+                                Debug.WriteLine($"Error al parsear licencia inicial: {innerEx.Message}");
                             }
 
                             if (nonCommercialValue != null)
@@ -107,19 +117,22 @@ namespace AdminRazer.Controllers
                                 }
                             }
                         }
-                        catch
+                        catch (Exception ex)
                         {
-                            // ignorar errores de reflection
+                            Debug.WriteLine($"Error al intentar setear LicenseContext: {ex.Message}");
                         }
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // ignorar cualquier error al establecer la licencia; EPPlus lanzará una excepción específica si aún falta
+                    // Registrar y continuar; si es crítico EPPlus lanzará su propia excepción en uso
+                    Debug.WriteLine($"Error al configurar licencia EPPlus (ignored): {ex.Message}");
                 }
 
                 // Detectar tipo de archivo por extensión
-                var fileName = archivoExcel.FileName ?? string.Empty;
+                // Tras la comprobación inicial, podemos usar la variable directamente (ya validada)
+                var archivo = archivoExcel;
+                var fileName = archivo.FileName;
                 var ext = Path.GetExtension(fileName).ToLowerInvariant();
 
                 int productosAgregados = 0;
@@ -128,10 +141,10 @@ namespace AdminRazer.Controllers
                 {
                     // Procesar CSV
                     using var ms = new MemoryStream();
-                    await archivoExcel.CopyToAsync(ms);
+                    await archivo.CopyToAsync(ms);
                     ms.Position = 0;
                     using var reader = new StreamReader(ms, Encoding.UTF8);
-                    string? header = await reader.ReadLineAsync(); // leer encabezados
+                    _ = await reader.ReadLineAsync(); // leer encabezados y descartarlos
                     while (!reader.EndOfStream)
                     {
                         var line = await reader.ReadLineAsync();
@@ -165,7 +178,7 @@ namespace AdminRazer.Controllers
 
                 // Si no es CSV, intentar como Excel con EPPlus
                 using var stream = new MemoryStream();
-                await archivoExcel.CopyToAsync(stream);
+                await archivo.CopyToAsync(stream);
                 stream.Position = 0;
 
                 using var package = new ExcelPackage(stream);
@@ -213,6 +226,8 @@ namespace AdminRazer.Controllers
             }
             catch (Exception ex)
             {
+                // Registrar el error y mostrar mensaje de usuario
+                Debug.WriteLine($"Error al procesar el archivo: {ex}");
                 TempData["Error"] = $"Error al procesar el archivo: {ex.Message}";
             }
 
@@ -227,7 +242,17 @@ namespace AdminRazer.Controllers
             var producto = _context.Productos.Find(id);
             if (producto == null) return NotFound();
 
-            return View(producto);
+            // Mapear la entidad Producto al ProductoEditViewModel que espera la vista Details
+            var vm = new ProductoEditViewModel
+            {
+                Id = producto.Id,
+                Nombre = producto.Nombre,
+                Categoria = producto.Categoria,
+                Precio = producto.Precio,
+                Stock = producto.Stock
+            };
+
+            return View(vm);
         }
 
         // GET: Producto/Create
@@ -303,11 +328,6 @@ namespace AdminRazer.Controllers
         // GET: Producto/Delete/5
         public IActionResult Delete(int? id)
         {
-            if (User.Identity == null || !User.Identity.IsAuthenticated || !User.IsInRole("Administrador"))
-            {
-                // Si el usuario no está autenticado o no es administrador, redirigir al Home
-                return RedirectToAction("Index", "Home");
-            }
             if (id == null) return NotFound();
 
             var producto = _context.Productos.Find(id);
@@ -331,10 +351,13 @@ namespace AdminRazer.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
         {
-            if (User.Identity == null || !User.Identity.IsAuthenticated || !User.IsInRole("Administrador"))
+            // El controlador ya protege con [Authorize(Roles = "Administrador")].
+            // Hacemos una comprobación de seguridad adicional por si acaso.
+            if (!User.IsInRole("Administrador"))
             {
                 return RedirectToAction("Index", "Home");
             }
+
             var producto = _context.Productos.Find(id);
             if (producto == null) return NotFound();
 

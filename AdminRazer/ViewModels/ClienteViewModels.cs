@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
-using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using System.Collections.Generic;
 
 namespace AdminRazer.ViewModels
 {
@@ -22,6 +22,15 @@ namespace AdminRazer.ViewModels
         [StringLength(200, ErrorMessage = "El email no puede tener más de 200 caracteres")]
         [EmailAddress(ErrorMessage = "Formato de email inválido")]
         public string Email { get; set; } = string.Empty;
+
+        // Nuevos campos para contraseña
+        [DataType(DataType.Password)]
+        [StringLength(100, ErrorMessage = "La contraseña debe tener al menos {2} caracteres.", MinimumLength = 6)]
+        public string Password { get; set; } = string.Empty;
+
+        [DataType(DataType.Password)]
+        [Compare("Password", ErrorMessage = "Las contraseñas no coinciden")]
+        public string ConfirmPassword { get; set; } = string.Empty;
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
@@ -47,9 +56,30 @@ namespace AdminRazer.ViewModels
                 if (digitsOnly.Length < 6)
                     yield return new ValidationResult("El teléfono parece corto; verifique el número", new[] { nameof(Telefono) });
             }
+
+            // Validación de contraseña:
+            // - En el flujo de creación (este tipo) la contraseña es obligatoria.
+            // - En edición la contraseña es opcional; si se proporciona debe cumplir longitud y coincidencia.
+            var isCreate = this.GetType() == typeof(ClienteCreateViewModel);
+
+            if (isCreate)
+            {
+                if (string.IsNullOrWhiteSpace(Password))
+                    yield return new ValidationResult("La contraseña es obligatoria", new[] { nameof(Password) });
+            }
+
+            if (!string.IsNullOrWhiteSpace(Password))
+            {
+                if (Password.Length < 6)
+                    yield return new ValidationResult("La contraseña debe tener al menos 6 caracteres", new[] { nameof(Password) });
+
+                if (Password != ConfirmPassword)
+                    yield return new ValidationResult("Las contraseñas no coinciden", new[] { nameof(Password), nameof(ConfirmPassword) });
+            }
         }
     }
 
+    // Clase de edición separada a nivel de espacio de nombres (las vistas la esperan como AdminRazer.ViewModels.ClienteEditViewModel)
     public class ClienteEditViewModel : ClienteCreateViewModel
     {
         [Required]

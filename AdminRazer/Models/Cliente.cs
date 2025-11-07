@@ -18,6 +18,14 @@ namespace AdminRazer.Models
         [MaxLength(200)]
         public string Email { get; set; } = null!;
 
+        // Nuevo: campo para almacenar el Id del usuario de Identity asociado (nullable para registros anteriores)
+        [MaxLength(450)]
+        public string? IdentityUserId { get; set; }
+
+        // Nuevo: almacenar el hash de la contraseña (NO almacenar contraseñas en texto plano)
+        [MaxLength(500)]
+        public string? PasswordHash { get; set; }
+
         // Constructor sin parámetros necesario para EF
         public Cliente() { }
 

@@ -10,7 +10,8 @@ public static class SeedData
         var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
         var userManager = serviceProvider.GetRequiredService<UserManager<IdentityUser>>();
 
-        string[] roleNames = { "Administrador", "Usuario" };
+        // Queremos asegurarnos que existe el rol "Cliente"; si existe un rol antiguo "Usuario" moveremos sus usuarios.
+        string[] roleNames = { "Administrador", "Cliente" };
 
         foreach (var roleName in roleNames)
         {
@@ -18,6 +19,29 @@ public static class SeedData
             if (!roleExist)
             {
                 await roleManager.CreateAsync(new IdentityRole(roleName));
+            }
+        }
+
+        // Si existe el rol antiguo "Usuario", migrar sus usuarios al nuevo rol "Cliente" y eliminar el rol antiguo.
+        if (await roleManager.RoleExistsAsync("Usuario"))
+        {
+            var usuariosEnRol = await userManager.GetUsersInRoleAsync("Usuario");
+            foreach (var u in usuariosEnRol)
+            {
+                // agregar a Cliente si no está
+                if (!await userManager.IsInRoleAsync(u, "Cliente"))
+                {
+                    await userManager.AddToRoleAsync(u, "Cliente");
+                }
+                // remover de Usuario
+                await userManager.RemoveFromRoleAsync(u, "Usuario");
+            }
+
+            // eliminar el rol Usuario (si ya no tiene usuarios)
+            var rolUsuario = await roleManager.FindByNameAsync("Usuario");
+            if (rolUsuario != null)
+            {
+                await roleManager.DeleteAsync(rolUsuario);
             }
         }
 
@@ -45,11 +69,65 @@ public static class SeedData
         // -----------------------
         var db = serviceProvider.GetRequiredService<ApplicationDbContext>();
 
-        // Seed Clientes
+        // Seed Clientes: ahora vinculamos cada cliente con un IdentityUser y guardamos el PasswordHash
         if (!db.Clientes.Any())
         {
-            db.Clientes.Add(new Cliente { Nombre = "jhon", Documento = "1000", Telefono = "3000003", Email = "Puertajhon@gmail.com" });
-            db.Clientes.Add(new Cliente { Nombre = "María", Documento = "2000", Telefono = "3000004", Email = "maria@example.com" });
+            // definir contraseñas por defecto (en producción obtener de config o proceso separado)
+            var defaultPasswordCliente = configuration["DefaultClientePassword"] ?? "Cliente123!";
+
+            var clientesSeed = new List<Cliente>
+            {
+                new Cliente { Nombre = "jhon", Documento = "1000", Telefono = "3000003", Email = "Puertajhon@gmail.com" },
+                new Cliente { Nombre = "María", Documento = "2000", Telefono = "3000004", Email = "maria@example.com" }
+            };
+
+            foreach (var cliente in clientesSeed)
+            {
+                // crear usuario Identity si no existe
+                var existingUser = await userManager.FindByEmailAsync(cliente.Email);
+                if (existingUser == null)
+                {
+                    var identityUser = new IdentityUser
+                    {
+                        UserName = cliente.Email,
+                        Email = cliente.Email,
+                        EmailConfirmed = true
+                    };
+
+                    var createResult = await userManager.CreateAsync(identityUser, defaultPasswordCliente);
+                    if (createResult.Succeeded)
+                    {
+                        // asignar rol Cliente
+                        await userManager.AddToRoleAsync(identityUser, "Cliente");
+
+                        // actualizar entidad cliente con IdentityUserId y PasswordHash
+                        cliente.IdentityUserId = identityUser.Id;
+                        cliente.PasswordHash = identityUser.PasswordHash; // Identity setea el PasswordHash al crear el usuario
+                    }
+                    else
+                    {
+                        // Si falla la creación del usuario, tomar el primer error y lanzar o registrar según convenga.
+                        // Aquí lo registramos en consola para no interrumpir el seed completo.
+                        var errors = string.Join(';', createResult.Errors.Select(e => e.Description));
+                        Console.WriteLine($"No se pudo crear el usuario Identity para {cliente.Email}: {errors}");
+                    }
+                }
+                else
+                {
+                    // usuario ya existe: enlazar su Id y hash
+                    cliente.IdentityUserId = existingUser.Id;
+                    cliente.PasswordHash = existingUser.PasswordHash;
+
+                    // asegurar que el usuario esté en el rol Cliente
+                    if (!await userManager.IsInRoleAsync(existingUser, "Cliente"))
+                    {
+                        await userManager.AddToRoleAsync(existingUser, "Cliente");
+                    }
+                }
+
+                db.Clientes.Add(cliente);
+            }
+
             await db.SaveChangesAsync();
         }
 
