@@ -1,7 +1,9 @@
 using AdminRazer.Data;
 using AdminRazer.Models;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Web.Api.DTOs;
 
 namespace Web.Api.Controllers
 {
@@ -10,62 +12,57 @@ namespace Web.Api.Controllers
     public class ClientesController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly IMapper _mapper;
 
-        public ClientesController(ApplicationDbContext context)
+        public ClientesController(ApplicationDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         // GET: api/Clientes
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Cliente>>> GetClientes()
+        public async Task<ActionResult<IEnumerable<ClienteDto>>> GetClientes()
         {
             var clientes = await _context.Clientes.ToListAsync();
-            return Ok(clientes);
+            var result = _mapper.Map<IEnumerable<ClienteDto>>(clientes);
+            return Ok(result);
         }
 
         // GET: api/Clientes/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Cliente>> GetCliente(int id)
+        public async Task<ActionResult<ClienteDto>> GetCliente(int id)
         {
             var cliente = await _context.Clientes.FindAsync(id);
-
             if (cliente == null)
                 return NotFound();
 
-            return Ok(cliente);
+            var result = _mapper.Map<ClienteDto>(cliente);
+            return Ok(result);
         }
 
         // POST: api/Clientes
         [HttpPost]
-        public async Task<ActionResult<Cliente>> PostCliente([FromBody] Cliente cliente)
+        public async Task<ActionResult<ClienteDto>> PostCliente(ClienteCreateDto clienteDto)
         {
+            var cliente = _mapper.Map<Cliente>(clienteDto);
             _context.Clientes.Add(cliente);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetCliente), new { id = cliente.Id }, cliente);
+            var result = _mapper.Map<ClienteDto>(cliente);
+            return CreatedAtAction(nameof(GetCliente), new { id = cliente.Id }, result);
         }
 
         // PUT: api/Clientes/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutCliente(int id, [FromBody] Cliente cliente)
+        public async Task<IActionResult> PutCliente(int id, ClienteCreateDto clienteDto)
         {
-            if (id != cliente.Id)
-                return BadRequest("El ID del cliente no coincide.");
+            var cliente = await _context.Clientes.FindAsync(id);
+            if (cliente == null)
+                return NotFound();
 
-            _context.Entry(cliente).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!_context.Clientes.Any(e => e.Id == id))
-                    return NotFound();
-                else
-                    throw;
-            }
+            _mapper.Map(clienteDto, cliente); // aplica cambios al existente
+            await _context.SaveChangesAsync();
 
             return NoContent();
         }
@@ -80,7 +77,6 @@ namespace Web.Api.Controllers
 
             _context.Clientes.Remove(cliente);
             await _context.SaveChangesAsync();
-
             return NoContent();
         }
     }
