@@ -15,7 +15,7 @@ public class HomeController : Controller
 
     public IActionResult Index()
     {
-        if (User?.Identity != null && User.Identity.IsAuthenticated)
+        if (User.Identity != null && User.Identity.IsAuthenticated)
         {
             // Si el usuario está autenticado, mostrar el panel de administrador solo para roles autorizados.
             return RedirectToAction("Index", "Admin");

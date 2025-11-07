@@ -1,4 +1,4 @@
-@model AdminRazer.Models.Cliente
+@model AdminRazer.ViewModels.ClienteCreateViewModel
 
 @{
     ViewData["Title"] = "Crear Cliente";
@@ -7,22 +7,31 @@
 <h1>Nuevo Cliente</h1>
 
 <form asp-action="Create">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
     <div class="form-group">
         <label asp-for="Nombre"></label>
         <input asp-for="Nombre" class="form-control" />
+        <span asp-validation-for="Nombre" class="text-danger"></span>
     </div>
     <div class="form-group">
         <label asp-for="Documento"></label>
         <input asp-for="Documento" class="form-control" />
+        <span asp-validation-for="Documento" class="text-danger"></span>
     </div>
     <div class="form-group">
         <label asp-for="Telefono"></label>
         <input asp-for="Telefono" class="form-control" />
+        <span asp-validation-for="Telefono" class="text-danger"></span>
     </div>
     <div class="form-group">
         <label asp-for="Email"></label>
         <input asp-for="Email" class="form-control" />
+        <span asp-validation-for="Email" class="text-danger"></span>
     </div>
     <button type="submit" class="btn btn-success mt-3">Guardar</button>
     <a asp-action="Index" class="btn btn-secondary mt-3">Volver</a>
 </form>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

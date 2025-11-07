@@ -31,9 +31,10 @@
         <tr>
             <td>@v.Id</td>
             <td>@v.Fecha.ToString("yyyy-MM-dd")</td>
-            <td>@(v.Cliente?.Nombre ?? "-")</td>
+            <td>@v.Cliente.Nombre</td>
             <td>@v.Total.ToString("C")</td>
             <td>
+                <a asp-controller="Ventas" asp-action="Details" asp-route-id="@v.Id" class="btn btn-info me-1">Ver</a>
                 <a asp-controller="Ventas" asp-action="Eliminar" asp-route-id="@v.Id" class="btn btn-danger">Eliminar</a>
             </td>
         </tr>

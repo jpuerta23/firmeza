@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml;
 using AdminRazer.Data;
 using AdminRazer.Models;
+using AdminRazer.ViewModels;
 using System.Reflection; // added for reflection
 using System.Globalization;
 using System.Text;
@@ -238,15 +239,22 @@ namespace AdminRazer.Controllers
         // POST: Producto/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create(Producto producto)
+        public IActionResult Create(ProductoCreateViewModel model)
         {
             if (ModelState.IsValid)
             {
+                var producto = new Producto
+                {
+                    Nombre = model.Nombre,
+                    Categoria = model.Categoria,
+                    Precio = model.Precio,
+                    Stock = model.Stock
+                };
                 _context.Productos.Add(producto);
                 _context.SaveChanges();
                 return RedirectToAction(nameof(Index));
             }
-            return View(producto);
+            return View(model);
         }
 
         // GET: Producto/Edit/5
@@ -257,27 +265,45 @@ namespace AdminRazer.Controllers
             var producto = _context.Productos.Find(id);
             if (producto == null) return NotFound();
 
-            return View(producto);
+            var vm = new ProductoEditViewModel
+            {
+                Id = producto.Id,
+                Nombre = producto.Nombre,
+                Categoria = producto.Categoria,
+                Precio = producto.Precio,
+                Stock = producto.Stock
+            };
+
+            return View(vm);
         }
 
         // POST: Producto/Edit
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Edit(Producto producto)
+        public IActionResult Edit(ProductoEditViewModel model)
         {
             if (ModelState.IsValid)
             {
+                var producto = _context.Productos.Find(model.Id);
+                if (producto == null) return NotFound();
+
+                // Mapear sólo las propiedades permitidas
+                producto.Nombre = model.Nombre;
+                producto.Categoria = model.Categoria;
+                producto.Precio = model.Precio;
+                producto.Stock = model.Stock;
+
                 _context.Productos.Update(producto);
                 _context.SaveChanges();
                 return RedirectToAction(nameof(Index));
             }
-            return View(producto);
+            return View(model);
         }
 
         // GET: Producto/Delete/5
         public IActionResult Delete(int? id)
         {
-            if (User?.Identity == null || !User.Identity.IsAuthenticated || !User.IsInRole("Administrador"))
+            if (User.Identity == null || !User.Identity.IsAuthenticated || !User.IsInRole("Administrador"))
             {
                 // Si el usuario no está autenticado o no es administrador, redirigir al Home
                 return RedirectToAction("Index", "Home");
@@ -287,7 +313,16 @@ namespace AdminRazer.Controllers
             var producto = _context.Productos.Find(id);
             if (producto == null) return NotFound();
 
-            return View(producto);
+            var vm = new AdminRazer.ViewModels.ProductoEditViewModel
+            {
+                Id = producto.Id,
+                Nombre = producto.Nombre,
+                Categoria = producto.Categoria,
+                Precio = producto.Precio,
+                Stock = producto.Stock
+            };
+
+            return View(vm);
         }
 
         // POST: Producto/DeleteConfirmed
@@ -296,7 +331,7 @@ namespace AdminRazer.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
         {
-            if (User?.Identity == null || !User.Identity.IsAuthenticated || !User.IsInRole("Administrador"))
+            if (User.Identity == null || !User.Identity.IsAuthenticated || !User.IsInRole("Administrador"))
             {
                 return RedirectToAction("Index", "Home");
             }

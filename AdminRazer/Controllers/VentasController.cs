@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Authorization;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using System.Globalization;
+using AdminRazer.ViewModels;
+using System.IO;
 
 namespace AdminRazer.Controllers
 {
@@ -32,6 +34,41 @@ namespace AdminRazer.Controllers
             return View(ventas);
         }
 
+        // GET: Ventas/Details/5
+        public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null) return NotFound();
+
+            var venta = await _context.Ventas
+                .Include(v => v.Cliente)
+                .Include(v => v.Detalles)
+                .ThenInclude(d => d.Producto)
+                .FirstOrDefaultAsync(v => v.Id == id);
+
+            if (venta == null) return NotFound();
+
+            // Mapear a ViewModel
+            var vm = new VentaViewModel
+            {
+                Id = venta.Id,
+                Fecha = venta.Fecha,
+                ClienteNombre = venta.Cliente.Nombre,
+                MetodoPago = venta.MetodoPago,
+                Total = venta.Total,
+                Detalles = venta.Detalles.Select(d => new DetalleVentaViewModel
+                {
+                    ProductoId = d.ProductoId,
+                    ProductoNombre = d.Producto.Nombre,
+                    Cantidad = d.Cantidad,
+                    PrecioUnitario = d.PrecioUnitario,
+                    Subtotal = d.Subtotal
+                }).ToList()
+            };
+
+            // Especificar la vista y pasar el VM
+            return View("Details", vm);
+        }
+
         // GET: Ventas/Eliminar/5
         public async Task<IActionResult> Eliminar(int? id)
         {
@@ -47,7 +84,24 @@ namespace AdminRazer.Controllers
 
             if (venta == null) return NotFound();
 
-            return View("Delete", venta);
+            var vm = new VentaViewModel
+            {
+                Id = venta.Id,
+                Fecha = venta.Fecha,
+                ClienteNombre = venta.Cliente.Nombre,
+                MetodoPago = venta.MetodoPago,
+                Total = venta.Total,
+                Detalles = venta.Detalles.Select(d => new DetalleVentaViewModel
+                {
+                    ProductoId = d.ProductoId,
+                    ProductoNombre = d.Producto.Nombre,
+                    Cantidad = d.Cantidad,
+                    PrecioUnitario = d.PrecioUnitario,
+                    Subtotal = d.Subtotal
+                }).ToList()
+            };
+
+            return View("Delete", vm);
         }
 
         // POST: Ventas/Eliminar/5
@@ -139,7 +193,7 @@ namespace AdminRazer.Controllers
         {
             // La licencia de QuestPDF se configura en Program.cs al iniciar la aplicación.
 
-            using var ms = new System.IO.MemoryStream();
+            using var ms = new MemoryStream();
 
             Document.Create(container =>
             {

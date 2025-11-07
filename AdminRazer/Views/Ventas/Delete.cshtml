@@ -1,5 +1,5 @@
 <!-- html -->
-@model AdminRazer.Models.Venta
+@model AdminRazer.ViewModels.VentaViewModel
 @{
 ViewData["Title"] = "Eliminar Venta";
 }
@@ -13,10 +13,10 @@ ViewData["Title"] = "Eliminar Venta";
         <dd class="col-sm-10">@Model.Fecha.ToString("yyyy-MM-dd")</dd>
 
         <dt class="col-sm-2">Cliente</dt>
-        <dd class="col-sm-10">@(Model.Cliente?.Nombre ?? "-")</dd>
+        <dd class="col-sm-10">@Model.ClienteNombre</dd>
 
         <dt class="col-sm-2">Total</dt>
-        <dd class="col-sm-10">@(Model.Total.ToString("C"))</dd>
+        <dd class="col-sm-10">@Model.Total.ToString("C")</dd>
     </dl>
 
     <h5>Detalle</h5>
@@ -30,10 +30,10 @@ ViewData["Title"] = "Eliminar Venta";
         </tr>
         </thead>
         <tbody>
-        @foreach (var d in Model.Detalles ?? Enumerable.Empty<AdminRazer.Models.DetalleVenta>())
+        @foreach (var d in Model.Detalles)
         {
         <tr>
-            <td>@(d.Producto?.Nombre ?? "-")</td>
+            <td>@d.ProductoNombre</td>
             <td>@d.Cantidad</td>
             <td>@(d.PrecioUnitario.ToString("C"))</td>
             <td>@(d.Subtotal.ToString("C"))</td>
@@ -43,7 +43,7 @@ ViewData["Title"] = "Eliminar Venta";
     </table>
 
     <form asp-controller="Ventas" asp-action="Eliminar" method="post">
-        <input type="hidden" asp-for="Id" />
+        <input type="hidden" name="id" value="@Model.Id" />
         <button type="submit" class="btn btn-danger">Confirmar eliminación</button>
         <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
     </form>
