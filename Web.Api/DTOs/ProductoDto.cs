@@ -11,6 +11,7 @@ namespace Web.Api.DTOs
     public class ProductoCreateDto
     {
         public string Nombre { get; set; } = null!;
+        public string Categoria { get; set; } = null!;
         public decimal Precio { get; set; }
         public int Stock { get; set; }
     }
