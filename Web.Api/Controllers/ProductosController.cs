@@ -1,6 +1,7 @@
 using AdminRazer.Data;
 using AdminRazer.Models;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Web.Api.DTOs;
@@ -9,6 +10,7 @@ namespace Web.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(AuthenticationSchemes = "Bearer", Roles = "Cliente")]
     public class ProductosController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -20,7 +22,8 @@ namespace Web.Api.Controllers
             _mapper = mapper;
         }
 
-        // GET: api/Productos
+        // ✅ GET: api/Productos
+        // Todos los clientes autenticados pueden ver los productos
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ProductoDto>>> GetProductos()
         {
@@ -28,7 +31,8 @@ namespace Web.Api.Controllers
             return Ok(_mapper.Map<IEnumerable<ProductoDto>>(productos));
         }
 
-        // GET: api/Productos/5
+        // ✅ GET: api/Productos/{id}
+        // El cliente autenticado puede ver un producto específico
         [HttpGet("{id}")]
         public async Task<ActionResult<ProductoDto>> GetProducto(int id)
         {
@@ -39,10 +43,14 @@ namespace Web.Api.Controllers
             return Ok(_mapper.Map<ProductoDto>(producto));
         }
 
-        // POST: api/Productos
+        // ✅ POST: api/Productos
+        // El cliente autenticado puede crear productos
         [HttpPost]
-        public async Task<ActionResult<ProductoDto>> PostProducto(ProductoCreateDto dto)
+        public async Task<ActionResult<ProductoDto>> PostProducto([FromBody] ProductoCreateDto dto)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
             var producto = _mapper.Map<Producto>(dto);
             _context.Productos.Add(producto);
             await _context.SaveChangesAsync();
@@ -51,20 +59,26 @@ namespace Web.Api.Controllers
             return CreatedAtAction(nameof(GetProducto), new { id = producto.Id }, result);
         }
 
-        // PUT: api/Productos/5
+        // ✅ PUT: api/Productos/{id}
+        // El cliente autenticado puede actualizar productos
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutProducto(int id, ProductoCreateDto dto)
+        public async Task<IActionResult> PutProducto(int id, [FromBody] ProductoCreateDto dto)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
             var producto = await _context.Productos.FindAsync(id);
             if (producto == null)
                 return NotFound();
 
             _mapper.Map(dto, producto);
             await _context.SaveChangesAsync();
+
             return NoContent();
         }
 
-        // DELETE: api/Productos/5
+        // ✅ DELETE: api/Productos/{id}
+        // El cliente autenticado puede eliminar productos
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteProducto(int id)
         {
