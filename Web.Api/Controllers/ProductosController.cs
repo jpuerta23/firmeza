@@ -10,7 +10,7 @@ namespace Web.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(AuthenticationSchemes = "Bearer", Roles = "Cliente")]
+    [Authorize(AuthenticationSchemes = "Bearer")]
     public class ProductosController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -22,18 +22,22 @@ namespace Web.Api.Controllers
             _mapper = mapper;
         }
 
-        // ✅ GET: api/Productos
-        // Todos los clientes autenticados pueden ver los productos
+        // ============================================================
+        //  CLIENTE Y ADMIN → PUEDEN VER PRODUCTOS
+        // ============================================================
+
+        // GET: api/Productos
         [HttpGet]
+        [Authorize(Roles = "Cliente,Administrador")]
         public async Task<ActionResult<IEnumerable<ProductoDto>>> GetProductos()
         {
             var productos = await _context.Productos.ToListAsync();
             return Ok(_mapper.Map<IEnumerable<ProductoDto>>(productos));
         }
 
-        // ✅ GET: api/Productos/{id}
-        // El cliente autenticado puede ver un producto específico
+        // GET: api/Productos/{id}
         [HttpGet("{id}")]
+        [Authorize(Roles = "Cliente,Administrador")]
         public async Task<ActionResult<ProductoDto>> GetProducto(int id)
         {
             var producto = await _context.Productos.FindAsync(id);
@@ -43,9 +47,13 @@ namespace Web.Api.Controllers
             return Ok(_mapper.Map<ProductoDto>(producto));
         }
 
-        // ✅ POST: api/Productos
-        // El cliente autenticado puede crear productos
+        // ============================================================
+        //  SOLO ADMINISTRADOR → CRUD COMPLETO
+        // ============================================================
+
+        // POST: api/Productos
         [HttpPost]
+        [Authorize(Roles = "Administrador")]
         public async Task<ActionResult<ProductoDto>> PostProducto([FromBody] ProductoCreateDto dto)
         {
             if (!ModelState.IsValid)
@@ -55,13 +63,13 @@ namespace Web.Api.Controllers
             _context.Productos.Add(producto);
             await _context.SaveChangesAsync();
 
-            var result = _mapper.Map<ProductoDto>(producto);
-            return CreatedAtAction(nameof(GetProducto), new { id = producto.Id }, result);
+            return CreatedAtAction(nameof(GetProducto), new { id = producto.Id },
+                _mapper.Map<ProductoDto>(producto));
         }
 
-        // ✅ PUT: api/Productos/{id}
-        // El cliente autenticado puede actualizar productos
+        // PUT: api/Productos/{id}
         [HttpPut("{id}")]
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> PutProducto(int id, [FromBody] ProductoCreateDto dto)
         {
             if (!ModelState.IsValid)
@@ -77,9 +85,9 @@ namespace Web.Api.Controllers
             return NoContent();
         }
 
-        // ✅ DELETE: api/Productos/{id}
-        // El cliente autenticado puede eliminar productos
+        // DELETE: api/Productos/{id}
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> DeleteProducto(int id)
         {
             var producto = await _context.Productos.FindAsync(id);
@@ -88,6 +96,7 @@ namespace Web.Api.Controllers
 
             _context.Productos.Remove(producto);
             await _context.SaveChangesAsync();
+
             return NoContent();
         }
     }

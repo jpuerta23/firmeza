@@ -18,24 +18,38 @@ namespace Web.Api.Services
         public string GenerateToken(string userId, string email, IList<string> roles)
         {
             var jwtSection = _config.GetSection("Jwt");
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSection["Key"]));
+
+            var keyString = jwtSection["Key"];
+            if (string.IsNullOrWhiteSpace(keyString))
+                throw new Exception("JWT Key is missing in configuration.");
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyString));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
+            // Claims básicos
             var claims = new List<Claim>
             {
+                new Claim(ClaimTypes.NameIdentifier, userId),
+                new Claim(ClaimTypes.Name, email),
                 new Claim(JwtRegisteredClaimNames.Sub, userId),
                 new Claim(JwtRegisteredClaimNames.Email, email),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
-            // Agregar los roles al token
-            claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
+            // Roles SIN MODIFICAR
+            foreach (var role in roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
+
+            // Expiración
+            var expireMinutes = jwtSection.GetValue<int>("ExpireMinutes", 180);
 
             var token = new JwtSecurityToken(
                 issuer: jwtSection["Issuer"],
                 audience: jwtSection["Audience"],
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(Convert.ToDouble(jwtSection["ExpireMinutes"])),
+                expires: DateTime.UtcNow.AddMinutes(expireMinutes),
                 signingCredentials: creds
             );
 

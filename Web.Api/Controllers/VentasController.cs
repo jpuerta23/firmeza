@@ -11,7 +11,7 @@ namespace Web.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(AuthenticationSchemes = "Bearer", Roles = "Cliente")]
+    [Authorize(AuthenticationSchemes = "Bearer")]
     public class VentasController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -23,35 +23,43 @@ namespace Web.Api.Controllers
             _mapper = mapper;
         }
 
-        // ✅ GET: api/Ventas
-        // El cliente autenticado puede ver todas las ventas (propias o todas si lo deseas)
+        // ============================================================
+        // ADMIN → ve todas las ventas
+        // CLIENTE → solo ve sus ventas
+        // ============================================================
+
         [HttpGet]
+        [Authorize(Roles = "Cliente,Administrador")]
         public async Task<ActionResult<IEnumerable<VentaDto>>> GetVentas()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var cliente = await _context.Clientes.FirstOrDefaultAsync(c => c.IdentityUserId == userId);
+            var role = User.FindFirstValue(ClaimTypes.Role);
 
-            if (cliente == null)
-                return NotFound("Cliente no encontrado.");
-
-            // Si solo quieres que vea sus propias ventas, descomenta esta línea:
-            // var ventas = await _context.Ventas.Where(v => v.ClienteId == cliente.Id)
-            //     .Include(v => v.Detalles).ThenInclude(d => d.Producto)
-            //     .ToListAsync();
-
-            // Si puede ver todas las ventas:
-            var ventas = await _context.Ventas
+            IQueryable<Venta> query = _context.Ventas
                 .Include(v => v.Cliente)
                 .Include(v => v.Detalles)
-                    .ThenInclude(d => d.Producto)
-                .ToListAsync();
+                    .ThenInclude(d => d.Producto);
 
+            if (role == "Cliente")
+            {
+                var cliente = await _context.Clientes.FirstOrDefaultAsync(c => c.IdentityUserId == userId);
+                if (cliente == null)
+                    return NotFound("Cliente no encontrado.");
+
+                query = query.Where(v => v.ClienteId == cliente.Id);
+            }
+
+            var ventas = await query.ToListAsync();
             return Ok(_mapper.Map<IEnumerable<VentaDto>>(ventas));
         }
 
-        // ✅ GET: api/Ventas/{id}
-        // El cliente autenticado puede ver su venta o cualquier venta
+        // ============================================================
+        // ADMIN → puede ver cualquier venta
+        // CLIENTE → solo su venta
+        // ============================================================
+
         [HttpGet("{id}")]
+        [Authorize(Roles = "Cliente,Administrador")]
         public async Task<ActionResult<VentaDto>> GetVenta(int id)
         {
             var venta = await _context.Ventas
@@ -64,85 +72,101 @@ namespace Web.Api.Controllers
                 return NotFound();
 
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var cliente = await _context.Clientes.FirstOrDefaultAsync(c => c.IdentityUserId == userId);
+            var role = User.FindFirstValue(ClaimTypes.Role);
 
-            if (cliente == null)
-                return NotFound("Cliente no encontrado.");
+            if (role == "Cliente")
+            {
+                var cliente = await _context.Clientes.FirstOrDefaultAsync(c => c.IdentityUserId == userId);
 
-            // Si quieres restringir que solo pueda ver sus ventas:
-            // if (venta.ClienteId != cliente.Id)
-            //     return Forbid("No puedes acceder a una venta que no es tuya.");
+                if (cliente == null)
+                    return NotFound("Cliente no encontrado.");
+
+                if (venta.ClienteId != cliente.Id)
+                {
+                    return StatusCode(403, new
+                    {
+                        Codigo = 403,
+                        Mensaje = "Acceso denegado.",
+                        Detalle = "No puedes acceder a una venta que no te pertenece."
+                    });
+                }
+            }
 
             return Ok(_mapper.Map<VentaDto>(venta));
         }
 
-        // ✅ POST: api/Ventas
-        // El cliente autenticado puede registrar nuevas ventas
+        // ============================================================
+        // CLIENTE → puede crear ventas
+        // ADMIN → NO crea ventas
+        // ============================================================
+
         [HttpPost]
-        public async Task<ActionResult<VentaDto>> PostVenta(VentaCreateDto dto)
+        [Authorize(Roles = "Cliente")]
+        public async Task<ActionResult<VentaDto>> PostVenta([FromBody] VentaCreateDto dto)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var cliente = await _context.Clientes.FirstOrDefaultAsync(c => c.IdentityUserId == userId);
 
             if (cliente == null)
-                return BadRequest("Cliente no válido o no vinculado con el usuario autenticado.");
+                return BadRequest("Cliente no válido o no vinculado con usuario.");
 
             var venta = _mapper.Map<Venta>(dto);
             venta.ClienteId = cliente.Id;
+
+            // Asignar precios reales desde producto
+            foreach (var detalle in venta.Detalles)
+            {
+                var producto = await _context.Productos.FindAsync(detalle.ProductoId);
+                if (producto == null)
+                    return BadRequest($"Producto con id {detalle.ProductoId} no existe.");
+
+                detalle.PrecioUnitario = producto.Precio;
+                detalle.Venta = venta;
+            }
+
             venta.RecalculateTotal();
 
             _context.Ventas.Add(venta);
             await _context.SaveChangesAsync();
 
-            var result = _mapper.Map<VentaDto>(venta);
-            return CreatedAtAction(nameof(GetVenta), new { id = venta.Id }, result);
+            return CreatedAtAction(nameof(GetVenta), new { id = venta.Id },
+                _mapper.Map<VentaDto>(venta));
         }
 
-        // ✅ PUT: api/Ventas/{id}
-        // El cliente autenticado puede modificar sus ventas
+        // ============================================================
+        // CLIENTE → NO puede editar su venta
+        // ADMIN → NO edita ventas
+        // ============================================================
+
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutVenta(int id, [FromBody] VentaCreateDto dto)
+        public IActionResult PutVenta(int id)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var cliente = await _context.Clientes.FirstOrDefaultAsync(c => c.IdentityUserId == userId);
+            return StatusCode(405, new
+            {
+                Codigo = 405,
+                Mensaje = "Método no permitido.",
+                Detalle = "Las ventas no se pueden modificar."
+            });
+        }
 
-            if (cliente == null)
-                return NotFound("Cliente no encontrado.");
+        // ============================================================
+        // ADMIN → puede eliminar cualquier venta
+        // CLIENTE → NO puede eliminar ventas
+        // ============================================================
 
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "Administrador")]
+        public async Task<IActionResult> DeleteVenta(int id)
+        {
             var venta = await _context.Ventas
                 .Include(v => v.Detalles)
                 .FirstOrDefaultAsync(v => v.Id == id);
 
             if (venta == null)
                 return NotFound();
-
-            if (venta.ClienteId != cliente.Id)
-                return Forbid("No puedes modificar una venta que no es tuya.");
-
-            _mapper.Map(dto, venta);
-            venta.RecalculateTotal();
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        // ✅ DELETE: api/Ventas/{id}
-        // El cliente autenticado puede eliminar sus ventas
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteVenta(int id)
-        {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var cliente = await _context.Clientes.FirstOrDefaultAsync(c => c.IdentityUserId == userId);
-
-            if (cliente == null)
-                return NotFound("Cliente no encontrado.");
-
-            var venta = await _context.Ventas.FindAsync(id);
-            if (venta == null)
-                return NotFound();
-
-            if (venta.ClienteId != cliente.Id)
-                return Forbid("No puedes eliminar una venta que no es tuya.");
 
             _context.Ventas.Remove(venta);
             await _context.SaveChangesAsync();

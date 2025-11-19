@@ -72,36 +72,9 @@ namespace AdminRazer.Controllers
         // GET: Ventas/Eliminar/5
         public async Task<IActionResult> Eliminar(int? id)
         {
-            // El controlador está protegido por [Authorize(Roles = "Administrador")],
-            // por lo que las comprobaciones de autenticación/rol pueden eliminarse aquí.
+            // Evitar que se muestre la página de eliminación: redirigir a Details para solo visualización
             if (id == null) return NotFound();
-
-            var venta = await _context.Ventas
-                .Include(v => v.Cliente)
-                .Include(v => v.Detalles)
-                .ThenInclude(d => d.Producto)
-                .FirstOrDefaultAsync(v => v.Id == id);
-
-            if (venta == null) return NotFound();
-
-            var vm = new VentaViewModel
-            {
-                Id = venta.Id,
-                Fecha = venta.Fecha,
-                ClienteNombre = venta.Cliente.Nombre,
-                MetodoPago = venta.MetodoPago,
-                Total = venta.Total,
-                Detalles = venta.Detalles.Select(d => new DetalleVentaViewModel
-                {
-                    ProductoId = d.ProductoId,
-                    ProductoNombre = d.Producto.Nombre,
-                    Cantidad = d.Cantidad,
-                    PrecioUnitario = d.PrecioUnitario,
-                    Subtotal = d.Subtotal
-                }).ToList()
-            };
-
-            return View("Delete", vm);
+            return RedirectToAction(nameof(Details), new { id });
         }
 
         // POST: Ventas/Eliminar/5
@@ -109,22 +82,8 @@ namespace AdminRazer.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EliminarConfirmado(int id)
         {
-            var venta = await _context.Ventas
-                .Include(v => v.Detalles)
-                .FirstOrDefaultAsync(v => v.Id == id);
-
-            if (venta == null) return NotFound();
-
-            // Eliminar detalles desde el DbSet registrado (DetallesVenta)
-            if (venta.Detalles.Count > 0)
-            {
-                _context.DetallesVenta.RemoveRange(venta.Detalles);
-            }
-
-            _context.Ventas.Remove(venta);
-            await _context.SaveChangesAsync();
-
-            return RedirectToAction(nameof(Index));
+            // Por decisión de permisos, los administradores NO pueden eliminar ventas mediante el panel.
+            return Forbid();
         }
 
         // -------------------------------------------------------------------

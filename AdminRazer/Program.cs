@@ -66,6 +66,8 @@ QuestPDF.Settings.License = LicenseType.Community;
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+// Registrar Razor Pages para que las páginas de Identity (Login/Register) estén disponibles
+builder.Services.AddRazorPages();
 
 if (builder.Environment.IsProduction())
 {
