@@ -1,0 +1,17 @@
+bin/
+obj/
+**/bin/
+**/obj/
+.vs/
+*.user
+*.suo
+*.log
+app_run.log
+app_pid.txt
+node_modules/
+npm-debug.log
+*.db
+*.sqlite
+.env
+*.env
+

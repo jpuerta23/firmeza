@@ -26,5 +26,16 @@
   <PackageReference Include="QuestPDF" Version="2025.5.0" />
 </ItemGroup>
 
+<!-- Prevent AdminRazer appsettings files from being copied into outputs when this project is referenced -->
+<ItemGroup>
+  <None Update="appsettings.json">
+    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+  </None>
+  <None Update="appsettings.Development.json">
+    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+  </None>
+</ItemGroup>
 
 </Project>

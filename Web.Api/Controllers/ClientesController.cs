@@ -177,6 +177,16 @@ namespace Web.Api.Controllers
         //  ADMIN: VINCULAR CLIENTE A UN USUARIO DE IDENTITY
         // ============================================================
 
+        // DTO local para mantener la compatibilidad si el DTO global fue eliminado
+        public class ClienteLinkDto
+        {
+            public string? ExistingUserId { get; set; }
+            public string? Email { get; set; }
+            public string? Password { get; set; }
+            public string? Username { get; set; }
+        }
+
+        [ApiExplorerSettings(IgnoreApi = true)]
         [Authorize(AuthenticationSchemes = "Bearer", Roles = "Administrador")]
         [HttpPost("{id}/link-user")]
         public async Task<IActionResult> LinkClienteToUser(int id, [FromBody] ClienteLinkDto dto)
