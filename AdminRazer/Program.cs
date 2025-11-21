@@ -105,7 +105,10 @@ else
 
 builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddRoles<IdentityRole>()
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
+
+builder.Services.AddScoped<AdminRazer.Services.IExcelImportService, AdminRazer.Services.ExcelImportService>();
 
 var app = builder.Build();
 
