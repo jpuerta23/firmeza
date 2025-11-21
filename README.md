@@ -1,80 +1,133 @@
-# Firmeza
-- This README is a lightweight guide. Add project-specific license and contribution guidelines as needed.
-License & contribution
+# Firmeza Store System
 
-- Add CI/CD pipeline to build images and push to a registry.
-- Add a `docker-compose.yml` to orchestrate the API with a database (Postgres/SQL Server).
-Next steps / enhancements (optional)
+A comprehensive e-commerce solution featuring a modern Angular storefront, a robust .NET Web API, and an administrative dashboard.
 
-- If migrations fail, verify the connection string and database accessibility.
-- If the image build fails due to missing project references, make sure you run `docker build` from the repository root so the Docker context contains both `Web.Api` and `AdminRazer` folders.
-Troubleshooting
+## 🏗 System Architecture
 
-- Example for connection string key: `ConnectionStrings__DefaultConnection` is commonly used for hierarchical configuration in ASP.NET Core.
-- Connection strings and other secrets should be provided via environment variables at runtime (or via a secrets mechanism).
-Notes about environment variables
+The system is composed of three main projects and a PostgreSQL database.
 
-Then visit http://localhost:8080 (or http://localhost:8080/swagger if Swagger is enabled).
+### Component Diagram
 
+```mermaid
+graph TD
+    subgraph Frontend
+        Client[Angular Client]
+        Admin[AdminRazer Panel]
+    end
+
+    subgraph Backend
+        API[Web API (.NET 8)]
+        DB[(PostgreSQL)]
+        SMTP[Email Service]
+    end
+
+    Client -->|HTTP/REST| API
+    Admin -->|EF Core| DB
+    API -->|EF Core| DB
+    API -.->|SMTP| SMTP
 ```
-  firmeza-webapi
-  -e ConnectionStrings__DefaultConnection="<your-connection-string>" \
-  -e ASPNETCORE_ENVIRONMENT=Production \
-docker run --rm -p 8080:80 \
-# run image mapping host port 8080 to container port 80
 
-docker build -f Web.Api/Dockerfile -t firmeza-webapi .
-# build image (from repo root)
-```bash
+### Projects Overview
 
-This repository includes a `Web.Api/Dockerfile` and `.dockerignore`. Build the container from the repository root so the referenced projects are available during the image build:
+1.  **Cliente (Angular 18)**: The public-facing storefront where users can browse products, login, and make purchases.
+2.  **Web.Api (.NET 8)**: The backend REST API that handles authentication, product data, sales processing, and email notifications.
+3.  **AdminRazer (.NET 8)**: A server-side rendered MVC/Razor application for administrators to manage products, view sales, and generate reports.
 
-4) Build & Run with Docker (Web.Api)
+---
 
+## 🔄 Purchase Flow
+
+The following sequence diagram illustrates the process when a user makes a purchase.
+
+### Purchase Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Client as Angular App
+    participant API as Web API
+    participant DB as Database
+    participant Email as Email Service
+
+    User->>Client: Click "Buy"
+    Client->>Client: Open Confirmation Modal
+    User->>Client: Select Quantity & Payment
+    User->>Client: Confirm Purchase
+    Client->>API: POST /api/ventas
+    
+    activate API
+    API->>DB: Check Stock
+    alt Stock Available
+        API->>DB: Deduct Stock
+        API->>DB: Save Sale Record
+        DB-->>API: Success
+        
+        par Email Notification
+            API->>Email: Send Confirmation Email
+            Email-->>User: Email Received
+        and Response
+            API-->>Client: 201 Created (Sale Details)
+        end
+        
+        Client-->>User: Show Success Message
+        Client->>API: Refresh Product List
+    else Insufficient Stock
+        API-->>Client: 400 Bad Request
+        Client-->>User: Show Error Message
+    end
+    deactivate API
 ```
-dotnet ef database update --project AdminRazer --startup-project Web.Api
-dotnet tool install --global dotnet-ef  # if not installed
-# from repository root
+
+---
+
+## 🚀 Getting Started
+
+The easiest way to run the entire system is using Docker Compose.
+
+### Prerequisites
+- Docker & Docker Compose
+
+### Run with Docker
+
+1.  **Clone the repository**.
+2.  **Configure SMTP**: Update `Web.Api/appsettings.json` or the `docker-compose.yml` environment variables with your real SMTP credentials.
+3.  **Run the stack**:
+
 ```bash
-
-Migrations live in the `AdminRazer/Migrations` folder. To apply migrations locally (adjust the `--project` and `--startup-project` flags as your layout requires):
-
-3) Database migrations
-
-By default Kestrel will listen on the ports configured in the project (or the environment variable `ASPNETCORE_URLS`). When running with `dotnet run` the console output shows the actual URL(s). Swagger (if enabled) is usually available at `/swagger`.
-
+docker-compose up --build
 ```
-dotnet run
-```bash
 
-From the `Web.Api` folder:
+This will start:
+- **Web API**: http://localhost:5000
+- **Admin Panel**: http://localhost:5001
+- **Client**: http://localhost:4200
+- **Database**: localhost:5432
 
-2) Run locally (API)
+### Manual Setup
 
-```
-dotnet build
-cd Web.Api
-```bash
+If you prefer to run projects individually:
 
-Open a terminal in the repository root and run:
+1.  **Database**: Ensure PostgreSQL is running and connection strings in `appsettings.json` are correct.
+2.  **Web API**:
+    ```bash
+    cd Web.Api
+    dotnet run
+    ```
+3.  **Admin Panel**:
+    ```bash
+    cd AdminRazer
+    dotnet run
+    ```
+4.  **Client**:
+    ```bash
+    cd Cliente
+    npm install
+    ng serve
+    ```
 
-1) Build locally (API)
+## 🛠 Configuration
 
-Common tasks
-
-- Optional: `dotnet-ef` tools for applying migrations locally: `dotnet tool install --global dotnet-ef`.
-- Docker (if you want to build and run the API in a container): https://www.docker.com/
-- .NET SDK 8.0 or later: https://dotnet.microsoft.com/
-Prerequisites
-
-- The solution includes EF Core migrations (see `Migrations/` inside `AdminRazer`).
-- Target framework: .NET 8.0 (see `Web.Api/Web.Api.csproj`).
-Quick overview
-
-- Web.Api: ASP.NET Core Web API (API surface used by clients / SPA / mobile).
-- AdminRazer: ASP.NET Core Razor pages / MVC application (Admin UI).
-Projects
-
-A multi-project ASP.NET Core solution consisting of an Admin Razor UI and a Web API back-end.
-
-
+### Environment Variables
+- `ConnectionStrings__DefaultConnection`: PostgreSQL connection string.
+- `Jwt__Key`: Secret key for token generation.
+- `EmailSettings__*`: SMTP configuration for sending emails.
