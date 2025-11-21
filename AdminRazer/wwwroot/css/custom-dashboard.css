@@ -1,11 +1,11 @@
 /* Custom dashboard styles: modern, subtle, non-intrusive */
-:root{
-    --primary: #0d6efd;
-    --muted: #6c757d;
+:root {
+    --primary: #0f172a;
+    --muted: #64748b;
     --surface: #ffffff;
-    --bg: #f8f9fa;
-    --card-radius: 12px;
-    --accent: #6610f2;
+    --bg: #f8fafc;
+    --card-radius: 16px;
+    --accent: #f59e0b;
 }
 
 body.bg-light {
@@ -13,45 +13,136 @@ body.bg-light {
 }
 
 .card-cta {
+    background: var(--surface);
+    border: 1px solid transparent;
     border-radius: var(--card-radius);
-    box-shadow: 0 6px 18px rgba(15,23,42,0.06);
-    transition: transform .12s ease, box-shadow .12s ease;
+    box-shadow: var(--shadow-md);
+    transition: all 0.3s ease;
+    overflow: hidden;
 }
 
-.card-cta:hover{
-    transform: translateY(-4px);
-    box-shadow: 0 12px 30px rgba(15,23,42,0.10);
+.card-cta:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+    border-color: rgba(245, 158, 11, 0.2);
 }
 
-.card-cta .icon-wrap{
-    width:56px;height:56px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg, rgba(13,110,253,0.10), rgba(102,16,242,0.06));color:var(--primary);font-size:24px;margin-right:12px;
-}
-
-.btn-modern{
-    border-radius: 10px;
-    padding: .6rem 1rem;
-    box-shadow: none;
-}
-
-.header-hero{
-    background: linear-gradient(90deg, rgba(13,110,253,0.06), rgba(102,16,242,0.03));
-    padding: 1.4rem;
+.card-cta .icon-wrap {
+    width: 56px;
+    height: 56px;
     border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.05), rgba(245, 158, 11, 0.1));
+    color: var(--primary);
+    font-size: 24px;
+    margin-right: 16px;
+    transition: all 0.3s ease;
 }
 
-.small-muted{
+.card-cta:hover .icon-wrap {
+    background: linear-gradient(135deg, var(--primary), var(--secondary-color));
+    color: white;
+    transform: scale(1.05);
+}
+
+.btn-modern {
+    border-radius: 8px;
+    padding: 0.6rem 1.2rem;
+    font-weight: 500;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.btn-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--secondary-color);
+}
+
+.header-hero {
+    background: var(--surface);
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: var(--shadow-md);
+    margin-bottom: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.small-muted {
     color: var(--muted);
 }
 
 .kpi {
-    display:flex;flex-direction:column;gap:.2rem
+    display: flex;
+    flex-direction: column;
+    gap: .2rem;
 }
 
-.kpi .value{font-weight:700;font-size:1.35rem}
-.kpi .label{color:var(--muted);font-size:.85rem}
+.kpi .value {
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: var(--primary);
+}
+
+.kpi .label {
+    color: var(--muted);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+/* Navbar Specifics for Admin */
+.navbar {
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: var(--shadow-md);
+    padding: 1rem 0;
+}
+
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.5rem;
+    background: linear-gradient(135deg, #fff 0%, #cbd5e1 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.nav-link {
+    color: #94a3b8 !important;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.nav-link:hover,
+.nav-link.active {
+    color: white !important;
+}
 
 /* Responsive tweaks */
-@media (max-width:576px){
-    .card-cta .icon-wrap{width:48px;height:48px}
-}
+@media (max-width:576px) {
+    .card-cta .icon-wrap {
+        width: 48px;
+        height: 48px
+    }
 
+    .header-hero {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+}

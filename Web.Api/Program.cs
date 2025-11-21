@@ -42,6 +42,12 @@ builder.Services.AddCors(options =>
 // ======================================
 var jwtKey = builder.Configuration["Jwt:Key"];
 
+// Validar que Jwt:Key esté presente para evitar pasar null a Encoding.GetBytes
+if (string.IsNullOrWhiteSpace(jwtKey))
+{
+    throw new InvalidOperationException("La clave JWT (Jwt:Key) no está configurada. Agrega Jwt:Key en appsettings.json o variables de entorno.");
+}
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -81,6 +87,12 @@ var identityBuilder = builder.Services.AddIdentity<IdentityUser, IdentityRole>(o
 identityBuilder.AddEntityFrameworkStores<ApplicationDbContext>();
 identityBuilder.AddDefaultTokenProviders();
 identityBuilder.AddSignInManager();
+
+// ======================================
+// 7.5. EMAIL SERVICE
+// ======================================
+builder.Services.Configure<Web.Api.Services.EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.AddTransient<Web.Api.Services.IEmailService, Web.Api.Services.SmtpEmailService>();
 
 // ======================================
 // 8. SWAGGER + JWT
@@ -125,6 +137,7 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
+    app.UseSwaggerUI();
 
 }
 

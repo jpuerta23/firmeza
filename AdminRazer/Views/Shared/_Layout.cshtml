@@ -8,14 +8,14 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/AdminRazer.styles.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/custom-dashboard.css" asp-append-version="true" />
-    <!-- Bootstrap Icons CDN (ligero) -->
+    <!-- Bootstrap Icons CDN -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
 </head>
 <body class="bg-light">
     <header>
-        <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <nav class="navbar navbar-expand-lg">
             <div class="container">
-                <a class="navbar-brand fw-bold text-primary" asp-area="" asp-controller="Home" asp-action="Index">AdminRazer</a>
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">AdminRazer</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
@@ -40,7 +40,6 @@
                     </ul>
 
                     <div class="d-flex align-items-center">
-                        <!-- 🔽 Aquí se incluye el LoginPartial para manejo de login/logout -->
                         <partial name="_LoginPartial" />
                     </div>
                 </div>
@@ -48,17 +47,17 @@
         </nav>
     </header>
 
-    <div class="container mt-4">
+    <div class="container mt-5 pt-4">
         <main role="main" class="pb-4">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top footer text-muted bg-white mt-5">
-        <div class="container py-3 d-flex justify-content-between">
+    <footer class="border-top footer text-muted mt-5">
+        <div class="container py-4 d-flex justify-content-between align-items-center">
             <div>&copy; @DateTime.Now.Year - AdminRazer</div>
             <div>
-                <a asp-area="" asp-controller="Home" asp-action="Privacy" class="text-muted">Privacidad</a>
+                <a asp-area="" asp-controller="Home" asp-action="Privacy" class="text-muted text-decoration-none">Privacidad</a>
             </div>
         </div>
     </footer>

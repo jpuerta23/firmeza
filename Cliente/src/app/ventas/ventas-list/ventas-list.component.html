@@ -1,0 +1,25 @@
+<div class="ventas-container">
+    <h2>Mis Compras</h2>
+    <div class="ventas-list">
+        <div *ngFor="let venta of ventas" class="venta-card">
+            <div class="venta-header">
+                <span class="fecha">{{ venta.fecha | date:'medium' }}</span>
+                <span class="total">Total: {{ venta.total | currency }}</span>
+            </div>
+            <div class="venta-details">
+                <p><strong>Método de Pago:</strong> {{ venta.metodoPago }}</p>
+                <div class="productos-comprados">
+                    <h4>Productos:</h4>
+                    <ul>
+                        <li *ngFor="let detalle of venta.detalles">
+                            {{ detalle.productoNombre }} (x{{ detalle.cantidad }}) - {{ detalle.subtotal | currency }}
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div *ngIf="ventas.length === 0" class="no-ventas">
+        No has realizado ninguna compra aún.
+    </div>
+</div>

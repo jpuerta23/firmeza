@@ -1,0 +1,45 @@
+<div class="productos-container">
+    <h2>Productos Disponibles</h2>
+    <div class="productos-grid">
+        <div *ngFor="let producto of productos" class="producto-card">
+            <h3>{{ producto.nombre }}</h3>
+            <p class="precio">{{ producto.precio | currency }}</p>
+            <button (click)="openModal(producto)" [disabled]="producto.stock <= 0">
+                {{ producto.stock > 0 ? 'Comprar' : 'Sin Stock' }}
+            </button>
+        </div>
+    </div>
+    <div *ngIf="productos.length === 0" class="no-products">
+        No hay productos disponibles.
+    </div>
+
+    <!-- Modal de Compra -->
+    <div class="modal-overlay" *ngIf="showModal && selectedProduct">
+        <div class="modal-content">
+            <h2>Confirmar Compra</h2>
+            <p><strong>Producto:</strong> {{ selectedProduct.nombre }}</p>
+            <p><strong>Precio Unitario:</strong> {{ selectedProduct.precio | currency }}</p>
+            <p><strong>Stock Disponible:</strong> {{ selectedProduct.stock }}</p>
+
+            <div class="form-group">
+                <label>Cantidad:</label>
+                <input type="number" [(ngModel)]="quantity" min="1" [max]="selectedProduct.stock">
+            </div>
+
+            <div class="form-group">
+                <label>Método de Pago:</label>
+                <select [(ngModel)]="paymentMethod">
+                    <option *ngFor="let method of paymentMethods" [value]="method">{{ method }}</option>
+                </select>
+            </div>
+
+            <p class="total"><strong>Total a Pagar:</strong> {{ total | currency }}</p>
+
+            <div class="modal-actions">
+                <button (click)="confirmPurchase()"
+                    [disabled]="quantity < 1 || quantity > selectedProduct.stock">Confirmar</button>
+                <button (click)="closeModal()" class="cancel">Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>

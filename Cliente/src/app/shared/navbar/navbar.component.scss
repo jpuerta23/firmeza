@@ -1,0 +1,85 @@
+.navbar {
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(10px);
+    color: white;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: var(--shadow-md);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+    .navbar-brand {
+        font-size: 1.5rem;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+        background: linear-gradient(135deg, #fff 0%, #cbd5e1 100%);
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .navbar-nav {
+        list-style: none;
+        display: flex;
+        gap: 32px;
+        margin: 0;
+        padding: 0;
+        align-items: center;
+
+        li {
+            a {
+                color: #94a3b8;
+                text-decoration: none;
+                cursor: pointer;
+                font-weight: 500;
+                font-size: 0.95rem;
+                padding: 8px 0;
+                position: relative;
+                transition: var(--transition);
+
+                &::after {
+                    content: '';
+                    position: absolute;
+                    width: 0;
+                    height: 2px;
+                    bottom: 0;
+                    left: 0;
+                    background-color: var(--accent-color);
+                    transition: var(--transition);
+                }
+
+                &:hover,
+                &.active {
+                    color: white;
+
+                    &::after {
+                        width: 100%;
+                    }
+                }
+
+                &.logout-btn {
+                    background-color: rgba(239, 68, 68, 0.1);
+                    color: var(--danger-color);
+                    padding: 8px 16px;
+                    border-radius: 8px;
+                    border: 1px solid rgba(239, 68, 68, 0.2);
+
+                    &::after {
+                        display: none;
+                    }
+
+                    &:hover {
+                        background-color: var(--danger-color);
+                        color: white;
+                        transform: translateY(-1px);
+                        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+                    }
+                }
+            }
+        }
+    }
+}

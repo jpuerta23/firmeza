@@ -1,0 +1,26 @@
+<div class="login-container">
+    <h2>Iniciar Sesión</h2>
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" formControlName="email" class="form-control">
+            <div *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched" class="error-msg">
+                Email es requerido y debe ser válido.
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="password">Contraseña</label>
+            <input type="password" id="password" formControlName="password" class="form-control">
+            <div *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched" class="error-msg">
+                Contraseña es requerida.
+            </div>
+        </div>
+
+        <div *ngIf="error" class="alert alert-danger">
+            {{ error }}
+        </div>
+
+        <button type="submit" [disabled]="loginForm.invalid">Ingresar</button>
+    </form>
+</div>
