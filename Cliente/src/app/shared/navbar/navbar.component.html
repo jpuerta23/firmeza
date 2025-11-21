@@ -2,6 +2,8 @@
     <div class="navbar-brand">Firmeza</div>
     <ul class="navbar-nav">
         <li *ngIf="!authService.isLogged()"><a routerLink="/auth/login" routerLinkActive="active">Login</a></li>
+        <li *ngIf="!authService.isLogged()"><a routerLink="/auth/register" routerLinkActive="active">Registrarse</a>
+        </li>
         <li *ngIf="authService.isLogged()"><a routerLink="/productos" routerLinkActive="active">Productos</a></li>
         <li *ngIf="authService.isLogged()"><a routerLink="/ventas" routerLinkActive="active">Mis Compras</a></li>
         <li *ngIf="authService.isLogged()"><a (click)="logout()" class="logout-btn">Salir</a></li>

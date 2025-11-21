@@ -87,5 +87,53 @@ namespace Web.Api.Controllers
                 }
             });
         }
+        // ✅ Register: Crea usuario Identity + Cliente
+        [HttpPost("register")]
+        [AllowAnonymous]
+        public async Task<IActionResult> Register([FromBody] RegisterDto model)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            // 1. Verificar si el usuario ya existe
+            var existingUser = await _userManager.FindByEmailAsync(model.Email);
+            if (existingUser != null)
+                return BadRequest(new { Error = "El correo ya está registrado." });
+
+            // 2. Crear usuario Identity
+            var user = new IdentityUser
+            {
+                UserName = model.Email,
+                Email = model.Email
+            };
+
+            var result = await _userManager.CreateAsync(user, model.Password);
+            if (!result.Succeeded)
+            {
+                return BadRequest(new { Error = "Error al crear usuario", Details = result.Errors });
+            }
+
+            // 3. Asignar rol "Cliente"
+            if (!await _roleManager.RoleExistsAsync("Cliente"))
+            {
+                await _roleManager.CreateAsync(new IdentityRole("Cliente"));
+            }
+            await _userManager.AddToRoleAsync(user, "Cliente");
+
+            // 4. Crear entidad Cliente vinculada
+            var cliente = new Cliente
+            {
+                Nombre = model.Nombre,
+                Documento = model.Documento,
+                Telefono = model.Telefono,
+                Email = model.Email,
+                IdentityUserId = user.Id
+            };
+
+            _context.Clientes.Add(cliente);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { Message = "Registro exitoso. Ahora puedes iniciar sesión." });
+        }
     }
 }

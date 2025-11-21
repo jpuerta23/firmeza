@@ -8,13 +8,17 @@ import { Observable } from 'rxjs';
 export class AuthService {
   private api = `${environment.apiUrl}/auth`; // ajustar si tu auth usa otra ruta
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   login(credentials: { email: string; password: string }): Observable<void> {
     return this.http.post<{ token: string }>(`${this.api}/login`, credentials)
       .pipe(map(res => {
         if (res?.token) this.saveToken(res.token);
       }));
+  }
+
+  register(data: any): Observable<any> {
+    return this.http.post(`${this.api}/register`, data);
   }
 
   logout() {
@@ -49,17 +53,17 @@ export class AuthService {
     const payload = this.getPayload();
     if (!payload) return null;
     // common claim names (NameIdentifier)
-    return payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] 
-      || payload['nameid'] 
-      || payload['sub'] 
+    return payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier']
+      || payload['nameid']
+      || payload['sub']
       || null;
   }
 
   getRole(): string | null {
     const payload = this.getPayload();
     if (!payload) return null;
-    return payload['role'] 
-      || payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] 
+    return payload['role']
+      || payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role']
       || null;
   }
 }

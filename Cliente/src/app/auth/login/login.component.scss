@@ -113,4 +113,24 @@
         align-items: center;
         gap: 8px;
     }
+
+
+    .register-link {
+        text-align: center;
+        margin-top: 20px;
+        color: var(--secondary-color);
+        font-size: 0.95rem;
+
+        a {
+            color: var(--accent-color);
+            text-decoration: none;
+            font-weight: 600;
+            transition: var(--transition);
+
+            &:hover {
+                color: var(--primary-color);
+                text-decoration: underline;
+            }
+        }
+    }
 }
