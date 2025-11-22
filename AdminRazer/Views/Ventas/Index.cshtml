@@ -4,40 +4,59 @@
     ViewData["Title"] = "Ventas";
 }
 
-<h1>Ventas</h1>
-
-<div class="mb-3">
-    <form asp-controller="Ventas" asp-action="DescargarPorDia" method="get" class="form-inline d-flex gap-2">
-        <label for="fecha" class="form-label me-2">Filtrar por día:</label>
-        <input type="date" id="fecha" name="fecha" class="form-control" />
-        <button type="submit" class="btn btn-primary">Descargar PDF (día)</button>
-        <a asp-controller="Ventas" asp-action="DescargarTodas" class="btn btn-secondary">Descargar PDF (todas)</a>
-    </form>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Ventas</h1>
 </div>
 
-<table class="table">
-    <thead>
-    <tr>
-        <th>Id</th>
-        <th>Fecha</th>
-        <th>Cliente</th>
-        <th>Total</th>
-        <th></th>
-    </tr>
-    </thead>
-    <tbody>
-    @foreach (var v in Model)
-    {
-        <tr>
-            <td>@v.Id</td>
-            <td>@v.Fecha.ToString("yyyy-MM-dd")</td>
-            <td>@v.Cliente.Nombre</td>
-            <td>@v.Total.ToString("C")</td>
-            <td>
-                <a asp-controller="Ventas" asp-action="Details" asp-route-id="@v.Id" class="btn btn-info me-1">Ver</a>
-                <a asp-controller="Ventas" asp-action="Eliminar" asp-route-id="@v.Id" class="btn btn-danger">Eliminar</a>
-            </td>
-        </tr>
-    }
-    </tbody>
-</table>
+<div class="card card-modern mb-4">
+    <div class="card-body">
+        <form asp-controller="Ventas" asp-action="DescargarPorDia" method="get" class="row g-3 align-items-end">
+            <div class="col-auto">
+                <label for="fecha" class="form-label fw-bold text-primary">Filtrar por día:</label>
+                <input type="date" id="fecha" name="fecha" class="form-control form-control-modern" />
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary btn-modern"><i class="bi bi-file-earmark-pdf"></i> Descargar PDF (día)</button>
+            </div>
+            <div class="col-auto">
+                <a asp-controller="Ventas" asp-action="DescargarTodas" class="btn btn-secondary btn-modern"><i class="bi bi-collection"></i> Descargar PDF (todas)</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card card-modern">
+    <div class="card-header-modern">
+        <h6 class="m-0 font-weight-bold text-primary">Historial de Ventas</h6>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive table-modern-container">
+            <table class="table table-modern table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Fecha</th>
+                        <th>Cliente</th>
+                        <th>Total</th>
+                        <th class="text-end">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var v in Model)
+                    {
+                        <tr>
+                            <td class="fw-bold text-dark">#@v.Id</td>
+                            <td>@v.Fecha.ToString("yyyy-MM-dd")</td>
+                            <td>@v.Cliente.Nombre</td>
+                            <td class="text-success fw-bold">@v.Total.ToString("C")</td>
+                            <td class="text-end">
+                                <a asp-controller="Ventas" asp-action="Details" asp-route-id="@v.Id" class="btn btn-info btn-sm btn-modern text-white me-1" title="Ver Detalles"><i class="bi bi-eye"></i> Ver</a>
+                                <a asp-controller="Ventas" asp-action="Eliminar" asp-route-id="@v.Id" class="btn btn-danger btn-sm btn-modern" title="Eliminar"><i class="bi bi-trash"></i></a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

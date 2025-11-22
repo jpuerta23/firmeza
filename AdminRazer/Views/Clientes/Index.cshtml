@@ -4,36 +4,44 @@
     ViewData["Title"] = "Clientes";
 }
 
-<h1>Clientes</h1>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Clientes</h1>
+    <a asp-action="Create" class="btn btn-primary btn-modern shadow-sm"><i class="bi bi-person-plus"></i> Nuevo Cliente</a>
+</div>
 
-<p>
-    <a asp-action="Create" class="btn btn-primary">Nuevo Cliente</a>
-</p>
-
-<table class="table table-striped">
-    <thead>
-    <tr>
-        <th>Nombre</th>
-        <th>Documento</th>
-        <th>Teléfono</th>
-        <th>Email</th>
-        <th></th>
-    </tr>
-    </thead>
-    <tbody>
-    @foreach (var item in Model)
-    {
-        <tr>
-            <td>@item.Nombre</td>
-            <td>@item.Documento</td>
-            <td>@item.Telefono</td>
-            <td>@item.Email</td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning btn-sm">Editar</a>
-                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info btn-sm">Detalles</a>
-                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger btn-sm">Eliminar</a>
-            </td>
-        </tr>
-    }
-    </tbody>
-</table>
+<div class="card card-modern">
+    <div class="card-header-modern">
+        <h6 class="m-0 font-weight-bold text-primary">Directorio de Clientes</h6>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive table-modern-container">
+            <table class="table table-modern table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Documento</th>
+                        <th>Teléfono</th>
+                        <th>Email</th>
+                        <th class="text-end">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="fw-bold text-dark">@item.Nombre</td>
+                            <td>@item.Documento</td>
+                            <td>@item.Telefono</td>
+                            <td>@item.Email</td>
+                            <td class="text-end">
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning btn-sm btn-modern text-white" title="Editar"><i class="bi bi-pencil"></i></a>
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info btn-sm btn-modern text-white" title="Detalles"><i class="bi bi-eye"></i></a>
+                                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger btn-sm btn-modern" title="Eliminar"><i class="bi bi-trash"></i></a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
