@@ -7,10 +7,12 @@ namespace AdminRazer.Controllers;
 public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;
+    private readonly AdminRazer.Data.ApplicationDbContext _context;
 
-    public HomeController(ILogger<HomeController> logger)
+    public HomeController(ILogger<HomeController> logger, AdminRazer.Data.ApplicationDbContext context)
     {
         _logger = logger;
+        _context = context;
     }
 
     public IActionResult Index()
@@ -21,6 +23,13 @@ public class HomeController : Controller
             return RedirectToAction("Index", "Admin");
         }
 
+        // Lógica para el Dashboard público o landing page (si aplica)
+        // En este caso, parece que la vista Index es la landing page pública.
+        // Si el requerimiento es para el dashboard de ADMIN, debería estar en AdminController o similar.
+        // Re-leyendo el requerimiento: "quiero que en adminrazer en el dasboard le salga..."
+        // El código actual redirige a AdminController si está autenticado.
+        // Voy a asumir que el usuario se refiere al Dashboard del Administrador.
+        
         return View();
     }
 

@@ -66,6 +66,9 @@ QuestPDF.Settings.License = LicenseType.Community;
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+// Registrar HttpClient y Servicio de AI
+builder.Services.AddHttpClient<AdminRazer.Services.IAiInsightService, AdminRazer.Services.GeminiInsightService>();
 // Registrar Razor Pages para que las páginas de Identity (Login/Register) estén disponibles
 builder.Services.AddRazorPages();
 
@@ -134,6 +137,19 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+
+// Configurar cultura para Colombia (COP)
+var defaultDateCulture = "es-CO";
+var ci = new System.Globalization.CultureInfo(defaultDateCulture);
+ci.NumberFormat.CurrencySymbol = "$"; // Asegurar símbolo $
+
+var localizationOptions = new RequestLocalizationOptions
+{
+    DefaultRequestCulture = new Microsoft.AspNetCore.Localization.RequestCulture(ci),
+    SupportedCultures = new List<System.Globalization.CultureInfo> { ci },
+    SupportedUICultures = new List<System.Globalization.CultureInfo> { ci }
+};
+app.UseRequestLocalization(localizationOptions);
 
 app.UseRouting();
 
