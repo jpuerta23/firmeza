@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Web.Api", "Web.Api\Web.Api.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdminRazer", "AdminRazer\AdminRazer.csproj", "{4C107CED-1369-4EE2-AD1D-33F3848EBBD8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Firmeza.Tests", "Firmeza.Tests\Firmeza.Tests.csproj", "{01E62018-F779-499F-8F24-5A543627341B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{4C107CED-1369-4EE2-AD1D-33F3848EBBD8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4C107CED-1369-4EE2-AD1D-33F3848EBBD8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4C107CED-1369-4EE2-AD1D-33F3848EBBD8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{01E62018-F779-499F-8F24-5A543627341B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{01E62018-F779-499F-8F24-5A543627341B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{01E62018-F779-499F-8F24-5A543627341B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{01E62018-F779-499F-8F24-5A543627341B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

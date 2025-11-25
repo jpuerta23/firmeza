@@ -15,7 +15,7 @@ COPY . .
 RUN rm -f /src/AdminRazer/appsettings.json /src/AdminRazer/appsettings.Development.json || true
 
 WORKDIR /src/Web.Api
-RUN dotnet publish "Web.Api.csproj" -c Release -o /app/publish --no-restore
+RUN dotnet publish "Web.Api.csproj" -c Release -o /app/publish
 
 # Build runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime

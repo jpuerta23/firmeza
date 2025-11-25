@@ -11,8 +11,11 @@ export class AuthService {
   constructor(private http: HttpClient) { }
 
   login(credentials: { email: string; password: string }): Observable<void> {
-    return this.http.post<{ token: string }>(`${this.api}/login`, credentials)
+    return this.http.post<any>(`${this.api}/login`, credentials)
       .pipe(map(res => {
+        if (res?.user?.roles && (res.user.roles.includes('Administrador') || res.user.roles.includes('Admin'))) {
+          throw new Error('No puedes ingresar eres un administrador');
+        }
         if (res?.token) this.saveToken(res.token);
       }));
   }

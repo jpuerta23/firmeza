@@ -1,0 +1,25 @@
+# Use the SDK image for building and testing
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /app
+
+# Copy solution and project files
+COPY *.sln .
+COPY Web.Api/*.csproj ./Web.Api/
+COPY AdminRazer/*.csproj ./AdminRazer/
+COPY Cliente/*.csproj ./Cliente/
+COPY Firmeza.Tests/*.csproj ./Firmeza.Tests/
+
+# Restore dependencies
+RUN dotnet restore
+
+# Copy the rest of the source code
+COPY Web.Api/. ./Web.Api/
+COPY AdminRazer/. ./AdminRazer/
+COPY Cliente/. ./Cliente/
+COPY Firmeza.Tests/. ./Firmeza.Tests/
+
+# Build the project
+RUN dotnet build
+
+# Run tests
+ENTRYPOINT ["dotnet", "test", "Firmeza.Tests/Firmeza.Tests.csproj", "--logger:trx"]

@@ -33,7 +33,11 @@ export class LoginComponent {
                     this.router.navigate(['/productos']);
                 },
                 error: (err) => {
-                    this.error = 'Credenciales inválidas o error en el servidor';
+                    if (err.message === 'No puedes ingresar eres un administrador') {
+                        this.error = err.message;
+                    } else {
+                        this.error = 'Credenciales inválidas o error en el servidor';
+                    }
                     console.error(err);
                 }
             });

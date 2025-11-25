@@ -10,7 +10,7 @@ RUN dotnet restore "AdminRazer/AdminRazer.csproj"
 COPY . .
 
 WORKDIR /src/AdminRazer
-RUN dotnet publish "AdminRazer.csproj" -c Release -o /app/publish --no-restore
+RUN dotnet publish "AdminRazer.csproj" -c Release -o /app/publish
 
 # Build runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
