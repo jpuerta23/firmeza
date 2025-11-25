@@ -32,6 +32,13 @@ graph TD
 1.  **Cliente (Angular 18)**: The public-facing storefront where users can browse products, login, and make purchases.
 2.  **Web.Api (.NET 8)**: The backend REST API that handles authentication, product data, sales processing, and email notifications.
 3.  **AdminRazer (.NET 8)**: A server-side rendered MVC/Razor application for administrators to manage products, view sales, and generate reports.
+4.  **Firmeza.Tests (xUnit)**: Automated integration and unit tests to ensure system reliability.
+
+### ✨ Key Features
+
+- **Admin Login Restriction**: Administrators are prevented from logging into the Client application to ensure role separation.
+- **Automated Testing**: Integration and unit tests run automatically before deployment.
+- **Dockerized Deployment**: Full stack deployment with a single command.
 
 ---
 
@@ -80,6 +87,27 @@ sequenceDiagram
 
 ---
 
+## 🧪 Automated Tests
+
+The solution includes a comprehensive test suite using xUnit and `Microsoft.AspNetCore.Mvc.Testing`.
+
+### Running Tests Locally
+
+```bash
+dotnet test Firmeza.Tests/Firmeza.Tests.csproj
+```
+
+### Running Tests in Docker
+
+The tests run automatically as part of the Docker Compose deployment. You can also run them in isolation:
+
+```bash
+docker build -f Dockerfile.test -t firmeza-tests .
+docker run --rm firmeza-tests
+```
+
+---
+
 ## 🚀 Getting Started
 
 The easiest way to run the entire system is using Docker Compose.
@@ -94,14 +122,18 @@ The easiest way to run the entire system is using Docker Compose.
 3.  **Run the stack**:
 
 ```bash
-docker-compose up --build
+docker compose up --build
 ```
 
-This will start:
+This will automatically:
+1.  Run the **Automated Tests**.
+2.  If tests pass, start the **Database**, **API**, **Admin**, and **Client**.
+
+Access the services at:
 - **Web API**: http://localhost:5000
 - **Admin Panel**: http://localhost:5001
 - **Client**: http://localhost:4200
-- **Database**: localhost:5432
+- **Database**: localhost:5433
 
 ### Manual Setup
 
