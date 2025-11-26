@@ -1,9 +1,8 @@
-using AdminRazer.Data;
 using AdminRazer.Models;
+using AdminRazer.Repositories.Interfaces;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Web.Api.DTOs;
 
 namespace Web.Api.Controllers
@@ -13,25 +12,24 @@ namespace Web.Api.Controllers
     [Authorize(AuthenticationSchemes = "Bearer")]
     public class ProductosController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IProductoRepository _productoRepository;
         private readonly IMapper _mapper;
 
-        public ProductosController(ApplicationDbContext context, IMapper mapper)
+        public ProductosController(IProductoRepository productoRepository, IMapper mapper)
         {
-            _context = context;
+            _productoRepository = productoRepository;
             _mapper = mapper;
         }
 
-        // ============================================================
-        //  CLIENTE Y ADMIN → PUEDEN VER PRODUCTOS
-        // ============================================================
+        // CLIENTE Y ADMIN → PUEDEN VER PRODUCTOS
+       
 
         // GET: api/Productos
         [HttpGet]
         [Authorize(Roles = "Cliente,Administrador")]
         public async Task<ActionResult<IEnumerable<ProductoDto>>> GetProductos()
         {
-            var productos = await _context.Productos.ToListAsync();
+            var productos = await _productoRepository.GetAllAsync();
             return Ok(_mapper.Map<IEnumerable<ProductoDto>>(productos));
         }
 
@@ -40,17 +38,16 @@ namespace Web.Api.Controllers
         [Authorize(Roles = "Cliente,Administrador")]
         public async Task<ActionResult<ProductoDto>> GetProducto(int id)
         {
-            var producto = await _context.Productos.FindAsync(id);
+            var producto = await _productoRepository.GetByIdAsync(id);
             if (producto == null)
                 return NotFound();
 
             return Ok(_mapper.Map<ProductoDto>(producto));
         }
 
-        // ============================================================
-        //  SOLO ADMINISTRADOR → CRUD COMPLETO
-        // ============================================================
-
+      
+        // SOLO ADMINISTRADOR → CRUD COMPLETO
+        
         // POST: api/Productos
         [HttpPost]
         [Authorize(Roles = "Administrador")]
@@ -60,8 +57,8 @@ namespace Web.Api.Controllers
                 return BadRequest(ModelState);
 
             var producto = _mapper.Map<Producto>(dto);
-            _context.Productos.Add(producto);
-            await _context.SaveChangesAsync();
+            await _productoRepository.AddAsync(producto);
+            await _productoRepository.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetProducto), new { id = producto.Id },
                 _mapper.Map<ProductoDto>(producto));
@@ -75,12 +72,13 @@ namespace Web.Api.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var producto = await _context.Productos.FindAsync(id);
+            var producto = await _productoRepository.GetByIdAsync(id);
             if (producto == null)
                 return NotFound();
 
             _mapper.Map(dto, producto);
-            await _context.SaveChangesAsync();
+            _productoRepository.Update(producto);
+            await _productoRepository.SaveChangesAsync();
 
             return NoContent();
         }
@@ -90,12 +88,12 @@ namespace Web.Api.Controllers
         [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> DeleteProducto(int id)
         {
-            var producto = await _context.Productos.FindAsync(id);
+            var producto = await _productoRepository.GetByIdAsync(id);
             if (producto == null)
                 return NotFound();
 
-            _context.Productos.Remove(producto);
-            await _context.SaveChangesAsync();
+            _productoRepository.Remove(producto);
+            await _productoRepository.SaveChangesAsync();
 
             return NoContent();
         }

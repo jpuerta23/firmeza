@@ -86,6 +86,14 @@ identityBuilder.AddSignInManager();
 builder.Services.Configure<Web.Api.Services.EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 builder.Services.AddTransient<Web.Api.Services.IEmailService, Web.Api.Services.SmtpEmailService>();
 
+
+// 7.6. REPOSITORIES & SERVICES
+
+builder.Services.AddScoped<AdminRazer.Repositories.Interfaces.IClienteRepository, AdminRazer.Repositories.ClienteRepository>();
+builder.Services.AddScoped<AdminRazer.Repositories.Interfaces.IProductoRepository, AdminRazer.Repositories.ProductoRepository>();
+builder.Services.AddScoped<AdminRazer.Repositories.Interfaces.IVentaRepository, AdminRazer.Repositories.VentaRepository>();
+builder.Services.AddScoped<Web.Api.Services.IVentaService, Web.Api.Services.VentaService>();
+
 // 8. SWAGGER + JWT
 
 builder.Services.AddEndpointsApiExplorer();

@@ -1,12 +1,10 @@
-using AdminRazer.Data;
 using AdminRazer.Models;
+using AdminRazer.Repositories.Interfaces;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
-using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using Web.Api.DTOs;
 
 namespace Web.Api.Controllers
@@ -15,29 +13,27 @@ namespace Web.Api.Controllers
     [Route("api/[controller]")]
     public class ClientesController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IClienteRepository _clienteRepository;
         private readonly IMapper _mapper;
         private readonly ILogger<ClientesController> _logger;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
 
         public ClientesController(
-            ApplicationDbContext context,
+            IClienteRepository clienteRepository,
             IMapper mapper,
             ILogger<ClientesController> logger,
             UserManager<IdentityUser> userManager,
             RoleManager<IdentityRole> roleManager)
         {
-            _context = context;
+            _clienteRepository = clienteRepository;
             _mapper = mapper;
             _logger = logger;
             _userManager = userManager;
             _roleManager = roleManager;
         }
 
-        // ============================================================
-        //  PERFIL DEL USUARIO AUTENTICADO (ADMIN Y CLIENTE)
-        // ============================================================
+        // PERFIL DEL USUARIO AUTENTICADO (ADMIN Y CLIENTE)
 
         [Authorize(AuthenticationSchemes = "Bearer")]
         [HttpGet("me")]
@@ -62,16 +58,14 @@ namespace Web.Api.Controllers
                 });
             }
 
-            var cliente = await _context.Clientes.FirstOrDefaultAsync(c => c.IdentityUserId == userId);
+            var cliente = await _clienteRepository.FirstOrDefaultAsync(c => c.IdentityUserId == userId);
             if (cliente == null)
                 return NotFound("No existe un perfil de cliente vinculado al usuario.");
 
             return Ok(_mapper.Map<ClienteDto>(cliente));
         }
 
-        // ============================================================
-        //  CLIENTE – ACTUALIZAR SU PERFIL
-        // ============================================================
+        // CLIENTE – ACTUALIZAR SU PERFIL
 
         [Authorize(AuthenticationSchemes = "Bearer", Roles = "Cliente")]
         [HttpPut("me")]
@@ -79,19 +73,18 @@ namespace Web.Api.Controllers
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            var cliente = await _context.Clientes.FirstOrDefaultAsync(c => c.IdentityUserId == userId);
+            var cliente = await _clienteRepository.FirstOrDefaultAsync(c => c.IdentityUserId == userId);
             if (cliente == null)
                 return NotFound("Cliente no encontrado.");
 
             _mapper.Map(dto, cliente);
-            await _context.SaveChangesAsync();
+            _clienteRepository.Update(cliente);
+            await _clienteRepository.SaveChangesAsync();
 
             return NoContent();
         }
 
-        // ============================================================
-        //  CLIENTE – BORRAR SU CUENTA
-        // ============================================================
+        // CLIENTE – BORRAR SU CUENTA
 
         [Authorize(AuthenticationSchemes = "Bearer", Roles = "Cliente")]
         [HttpDelete("me")]
@@ -99,25 +92,23 @@ namespace Web.Api.Controllers
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            var cliente = await _context.Clientes.FirstOrDefaultAsync(c => c.IdentityUserId == userId);
+            var cliente = await _clienteRepository.FirstOrDefaultAsync(c => c.IdentityUserId == userId);
             if (cliente == null)
                 return NotFound("Cliente no encontrado.");
 
-            _context.Clientes.Remove(cliente);
-            await _context.SaveChangesAsync();
+            _clienteRepository.Remove(cliente);
+            await _clienteRepository.SaveChangesAsync();
 
             return NoContent();
         }
 
-        // ============================================================
-        //  CRUD COMPLETO PARA ADMINISTRADOR
-        // ============================================================
+        // CRUD COMPLETO PARA ADMINISTRADOR
 
         [Authorize(AuthenticationSchemes = "Bearer", Roles = "Administrador")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ClienteDto>>> GetClientes()
         {
-            var clientes = await _context.Clientes.ToListAsync();
+            var clientes = await _clienteRepository.GetAllAsync();
             return Ok(_mapper.Map<IEnumerable<ClienteDto>>(clientes));
         }
 
@@ -125,7 +116,7 @@ namespace Web.Api.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<ClienteDto>> GetCliente(int id)
         {
-            var cliente = await _context.Clientes.FindAsync(id);
+            var cliente = await _clienteRepository.GetByIdAsync(id);
             if (cliente == null)
                 return NotFound();
 
@@ -138,8 +129,8 @@ namespace Web.Api.Controllers
         {
             var cliente = _mapper.Map<Cliente>(dto);
 
-            _context.Clientes.Add(cliente);
-            await _context.SaveChangesAsync();
+            await _clienteRepository.AddAsync(cliente);
+            await _clienteRepository.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetCliente), new { id = cliente.Id },
                 _mapper.Map<ClienteDto>(cliente));
@@ -149,12 +140,13 @@ namespace Web.Api.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutCliente(int id, [FromBody] ClienteCreateDto dto)
         {
-            var cliente = await _context.Clientes.FindAsync(id);
+            var cliente = await _clienteRepository.GetByIdAsync(id);
             if (cliente == null)
                 return NotFound();
 
             _mapper.Map(dto, cliente);
-            await _context.SaveChangesAsync();
+            _clienteRepository.Update(cliente);
+            await _clienteRepository.SaveChangesAsync();
 
             return NoContent();
         }
@@ -163,19 +155,17 @@ namespace Web.Api.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCliente(int id)
         {
-            var cliente = await _context.Clientes.FindAsync(id);
+            var cliente = await _clienteRepository.GetByIdAsync(id);
             if (cliente == null)
                 return NotFound();
 
-            _context.Clientes.Remove(cliente);
-            await _context.SaveChangesAsync();
+            _clienteRepository.Remove(cliente);
+            await _clienteRepository.SaveChangesAsync();
 
             return NoContent();
         }
 
-        // ============================================================
-        //  ADMIN: VINCULAR CLIENTE A UN USUARIO DE IDENTITY
-        // ============================================================
+        // ADMIN: VINCULAR CLIENTE A UN USUARIO DE IDENTITY
 
         // DTO local para mantener la compatibilidad si el DTO global fue eliminado
         public class ClienteLinkDto
@@ -191,7 +181,7 @@ namespace Web.Api.Controllers
         [HttpPost("{id}/link-user")]
         public async Task<IActionResult> LinkClienteToUser(int id, [FromBody] ClienteLinkDto dto)
         {
-            var cliente = await _context.Clientes.FindAsync(id);
+            var cliente = await _clienteRepository.GetByIdAsync(id);
             if (cliente == null)
                 return NotFound(new { Codigo = 404, Mensaje = "Cliente no encontrado." });
 
@@ -241,7 +231,8 @@ namespace Web.Api.Controllers
 
             // Vincular
             cliente.IdentityUserId = user.Id;
-            await _context.SaveChangesAsync();
+            _clienteRepository.Update(cliente);
+            await _clienteRepository.SaveChangesAsync();
 
             return Ok(new
             {

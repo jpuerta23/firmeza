@@ -23,12 +23,7 @@ public class HomeController : Controller
             return RedirectToAction("Index", "Admin");
         }
 
-        // Lógica para el Dashboard público o landing page (si aplica)
-        // En este caso, parece que la vista Index es la landing page pública.
-        // Si el requerimiento es para el dashboard de ADMIN, debería estar en AdminController o similar.
-        // Re-leyendo el requerimiento: "quiero que en adminrazer en el dasboard le salga..."
-        // El código actual redirige a AdminController si está autenticado.
-        // Voy a asumir que el usuario se refiere al Dashboard del Administrador.
+        // Landing Page
         
         return View();
     }

@@ -16,6 +16,8 @@ namespace AdminRazer.Repositories
             return await _dbSet
                 .Where(v => v.ClienteId == clienteId)
                 .Include(v => v.Cliente)
+                .Include(v => v.Detalles)
+                    .ThenInclude(d => d.Producto)
                 .ToListAsync();
         }
 
@@ -42,6 +44,8 @@ namespace AdminRazer.Repositories
         {
             return await _dbSet
                 .Include(v => v.Cliente)
+                .Include(v => v.Detalles)
+                    .ThenInclude(d => d.Producto)
                 .FirstOrDefaultAsync(v => v.Id == id);
         }
 
@@ -49,6 +53,8 @@ namespace AdminRazer.Repositories
         {
             return await _dbSet
                 .Include(v => v.Cliente)
+                .Include(v => v.Detalles)
+                    .ThenInclude(d => d.Producto)
                 .ToListAsync();
         }
 

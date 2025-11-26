@@ -14,9 +14,12 @@ namespace AdminRazer.Services
         private readonly IProductoRepository _productoRepository;
         private readonly IVentaRepository _ventaRepository;
 
+        // MODELO ACTUALIZADO Y VÁLIDO
+        private const string GeminiModel = "gemini-2.0-flash";
+
         public GeminiInsightService(
-            HttpClient httpClient, 
-            IConfiguration configuration, 
+            HttpClient httpClient,
+            IConfiguration configuration,
             ILogger<GeminiInsightService> logger,
             IProductoRepository productoRepository,
             IVentaRepository ventaRepository)
@@ -28,166 +31,203 @@ namespace AdminRazer.Services
             _ventaRepository = ventaRepository;
         }
 
+        // =====================================
+        // RESUMEN DIARIO
+        // =====================================
         public async Task<string> GetDailyInsightAsync(int salesCount, decimal totalRevenue)
         {
-            // Reusing the chat logic for daily insight could be an option, but keeping it simple for now as per original logic
-            // but we can enhance it later.
             var apiKey = _configuration["Gemini:ApiKey"];
-
-            if (string.IsNullOrWhiteSpace(apiKey) || apiKey == "YOUR_API_KEY_HERE")
-            {
+            if (string.IsNullOrWhiteSpace(apiKey))
                 return GenerateFallbackMessage(salesCount, totalRevenue);
-            }
 
             try
             {
-                var prompt = $"Actúa como un asistente de negocios entusiasta y profesional para el administrador de la tienda 'Firmeza'. " +
-                             $"Hoy se han realizado {salesCount} ventas con un total de {totalRevenue:C}. " +
-                             $"Genera un resumen corto (máximo 2 frases) que sea motivador o informativo sobre el rendimiento de hoy.";
+                var prompt = $"Actúa como un asistente de negocios para la tienda 'Firmeza'. " +
+                             $"Hoy se realizaron {salesCount} ventas con un total de {totalRevenue:C}. " +
+                             $"Crea un resumen motivador de máximo 2 frases.";
 
                 return await CallGeminiApi(prompt, apiKey);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error calling Gemini API for Daily Insight");
+                _logger.LogError(ex, "Error en GetDailyInsightAsync");
                 return GenerateFallbackMessage(salesCount, totalRevenue);
             }
         }
 
+        // =====================================
+        // CHAT GENERAL
+        // =====================================
         public async Task<string> ChatAsync(string question)
         {
             var apiKey = _configuration["Gemini:ApiKey"];
-            if (string.IsNullOrWhiteSpace(apiKey) || apiKey == "YOUR_API_KEY_HERE")
-            {
-                return "Lo siento, no puedo responder en este momento porque mi clave de API no está configurada.";
-            }
+            if (string.IsNullOrWhiteSpace(apiKey))
+                return "La clave API de Gemini no está configurada.";
 
             try
             {
-                // 1. Gather Context
                 var context = await BuildContextAsync();
 
-                // 2. Construct Prompt
-                var prompt = $"Eres un asistente inteligente para el administrador de la tienda 'Firmeza'. " +
-                             $"Tienes acceso a los siguientes datos de la tienda:\n\n{context}\n\n" +
-                             $"Pregunta del usuario: {question}\n" +
-                             $"Responde de manera concisa, útil y profesional. Si te preguntan por el producto más vendido, usa los datos proporcionados.";
+                var prompt =
+                    $"Eres un asistente inteligente para el administrador de 'Firmeza'. " +
+                    $"Aquí tienes el contexto completo y actualizado de la tienda (productos, inventario, ventas históricas y ventas del día):\n\n" +
+                    $"{context}\n\n" +
+                    $"Pregunta del usuario: {question}\n" +
+                    "Responde usando únicamente los datos del contexto. " +
+                    "No digas nunca que no tienes acceso a información; si algo no aparece en el contexto responde: 'esa información no está en el registro'. " +
+                    "Sé profesional, claro y analítico.";
 
-                // 3. Call API
                 return await CallGeminiApi(prompt, apiKey);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error calling Gemini API for Chat");
-                return "Lo siento, ocurrió un error al procesar tu pregunta.";
+                _logger.LogError(ex, "Error en ChatAsync");
+                return "Ocurrió un error procesando tu solicitud.";
             }
         }
 
+        // =====================================
+        // CONSTRUIR CONTEXTO COMPLETO
+        // =====================================
         private async Task<string> BuildContextAsync()
         {
             var sb = new StringBuilder();
 
-            // Products
+            // ==============================
+            // PRODUCTOS
+            // ==============================
             var productos = await _productoRepository.GetAllAsync();
-            sb.AppendLine("--- PRODUCTOS ---");
+            sb.AppendLine("=== PRODUCTOS EN INVENTARIO ===");
+
             foreach (var p in productos)
             {
-                sb.AppendLine($"- ID: {p.Id}, Nombre: {p.Nombre}, Precio: {p.Precio:C}, Stock: {p.Stock}, Categoría: {p.Categoria}");
+                sb.AppendLine(
+                    $"- ID: {p.Id} | Nombre: {p.Nombre} | Precio: {p.Precio:C} | Stock: {p.Stock} | Categoría: {p.Categoria}");
             }
 
-            // Recent Sales (Last 30 days)
-            var startDate = DateTime.UtcNow.AddDays(-30);
-            var endDate = DateTime.UtcNow;
-            var ventas = await _ventaRepository.GetByFechaRangeAsync(startDate, endDate);
-            
-            // Calculate stats
-            var totalRevenue = ventas.Sum(v => v.Total);
-            var totalSalesCount = ventas.Count();
+            // ==============================
+            // TODAS LAS VENTAS
+            // ==============================
+            sb.AppendLine("\n=== TODAS LAS VENTAS REGISTRADAS ===");
 
-            // Best selling product
-            var bestSelling = ventas
+            var ventas = await _ventaRepository.GetAllAsync(); // <- AQUÍ SE INCLUYEN TODAS
+
+            if (!ventas.Any())
+            {
+                sb.AppendLine("No hay ventas registradas.");
+            }
+            else
+            {
+                foreach (var venta in ventas.OrderByDescending(v => v.Fecha))
+                {
+                    sb.AppendLine($"\n> Venta #{venta.Id} | Fecha: {venta.Fecha} | Total: {venta.Total:C}");
+
+                    foreach (var d in venta.Detalles)
+                    {
+                        var prod = productos.FirstOrDefault(x => x.Id == d.ProductoId);
+                        string nombre = prod?.Nombre ?? "Producto desconocido";
+
+                        sb.AppendLine($"   - {nombre} | Cantidad: {d.Cantidad} | Subtotal: {d.Subtotal:C}");
+                    }
+                }
+            }
+
+            // ==============================
+            // ESTADÍSTICAS GLOBALES
+            // ==============================
+            var totalRevenue = ventas.Sum(v => v.Total);
+            var totalSales = ventas.Count();
+
+            sb.AppendLine("\n=== ESTADÍSTICAS GLOBALES ===");
+            sb.AppendLine($"Total histórico de ingresos: {totalRevenue:C}");
+            sb.AppendLine($"Total de ventas registradas: {totalSales}");
+
+            // Producto más vendido global
+            var best = ventas
                 .SelectMany(v => v.Detalles)
                 .GroupBy(d => d.ProductoId)
-                .Select(g => new 
-                { 
-                    ProductoId = g.Key, 
-                    TotalQuantity = g.Sum(d => d.Cantidad),
-                    TotalRevenue = g.Sum(d => d.Subtotal)
+                .Select(g => new
+                {
+                    ProductoId = g.Key,
+                    Cant = g.Sum(x => x.Cantidad)
                 })
-                .OrderByDescending(x => x.TotalQuantity)
+                .OrderByDescending(x => x.Cant)
                 .FirstOrDefault();
 
-            string bestSellingProductName = "N/A";
-            if (bestSelling != null)
+            if (best != null)
             {
-                var p = productos.FirstOrDefault(x => x.Id == bestSelling.ProductoId);
-                bestSellingProductName = p?.Nombre ?? $"ID {bestSelling.ProductoId}";
+                var p = productos.FirstOrDefault(x => x.Id == best.ProductoId);
+                sb.AppendLine($"Producto más vendido: {p?.Nombre ?? "Desconocido"} ({best.Cant} unidades)");
             }
-
-            sb.AppendLine("\n--- VENTAS (Últimos 30 días) ---");
-            sb.AppendLine($"Total Ingresos: {totalRevenue:C}");
-            sb.AppendLine($"Total Transacciones: {totalSalesCount}");
-            sb.AppendLine($"Producto Más Vendido (Unidades): {bestSellingProductName} ({(bestSelling?.TotalQuantity ?? 0)} unidades)");
 
             return sb.ToString();
         }
 
+        // =====================================
+        // LLAMAR API GEMINI
+        // =====================================
         private async Task<string> CallGeminiApi(string prompt, string apiKey)
         {
             var requestBody = new
             {
                 contents = new[]
                 {
-                    new { parts = new[] { new { text = prompt } } }
+                    new
+                    {
+                        role = "user",
+                        parts = new[]
+                        {
+                            new { text = prompt }
+                        }
+                    }
                 }
             };
 
-            var jsonContent = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
-            var response = await _httpClient.PostAsync($"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={apiKey}", jsonContent);
+            var url =
+                $"https://generativelanguage.googleapis.com/v1beta/models/{GeminiModel}:generateContent?key={apiKey}";
+
+            var content = new StringContent(
+                JsonSerializer.Serialize(requestBody),
+                Encoding.UTF8,
+                "application/json"
+            );
+
+            var response = await _httpClient.PostAsync(url, content);
+            var responseContent = await response.Content.ReadAsStringAsync();
 
             if (!response.IsSuccessStatusCode)
             {
-                var error = await response.Content.ReadAsStringAsync();
-                _logger.LogWarning($"Gemini API returned {response.StatusCode}: {error}");
-                return "Lo siento, hubo un problema al comunicarse con el servicio de IA.";
+                _logger.LogWarning($"Gemini error {response.StatusCode}: {responseContent}");
+                return "Hubo un problema al comunicarse con el servicio de IA.";
             }
 
-            var responseString = await response.Content.ReadAsStringAsync();
-            var geminiResponse = JsonSerializer.Deserialize<GeminiResponse>(responseString);
+            try
+            {
+                var json = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                var text = json
+                    .GetProperty("candidates")[0]
+                    .GetProperty("content")
+                    .GetProperty("parts")[0]
+                    .GetProperty("text")
+                    .GetString();
 
-            var text = geminiResponse?.Candidates?.FirstOrDefault()?.Content?.Parts?.FirstOrDefault()?.Text;
-            return !string.IsNullOrWhiteSpace(text) ? text.Trim() : "No pude generar una respuesta.";
+                return text ?? "La IA no devolvió contenido.";
+            }
+            catch
+            {
+                return "La IA respondió en un formato inesperado.";
+            }
         }
 
+        // =====================================
+        // FALLBACK
+        // =====================================
         private string GenerateFallbackMessage(int count, decimal total)
         {
-            if (count == 0) return "Hoy no se han registrado ventas todavía.";
-            return $"Hoy se han vendido {count} productos, generando un total de {total:C}.";
-        }
+            if (count == 0)
+                return "Hoy aún no se registran ventas.";
 
-        // Clases para deserializar la respuesta de Gemini
-        private class GeminiResponse
-        {
-            [JsonPropertyName("candidates")]
-            public List<Candidate>? Candidates { get; set; }
-        }
-
-        private class Candidate
-        {
-            [JsonPropertyName("content")]
-            public Content? Content { get; set; }
-        }
-
-        private class Content
-        {
-            [JsonPropertyName("parts")]
-            public List<Part>? Parts { get; set; }
-        }
-
-        private class Part
-        {
-            [JsonPropertyName("text")]
-            public string? Text { get; set; }
+            return $"Hoy se han registrado {count} ventas por un total de {total:C}.";
         }
     }
 }
