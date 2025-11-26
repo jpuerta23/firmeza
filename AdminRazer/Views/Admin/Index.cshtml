@@ -1,49 +1,67 @@
 @model AdminRazer.ViewModels.DashboardViewModel
 @{
-    ViewData["Title"] = "Panel Administrativo";
+    ViewData["Title"] = "Dashboard Administrador";
+    Layout = "_AdminLayout";
 }
 
-<!-- Enlazar CSS del dashboard desde wwwroot/css -->
-<link rel="stylesheet" href="/css/admin-dashboard.css" />
-
-<div class="admin-header">
-    <div class="brand">
-        <div class="logo" aria-hidden="true">F</div>
-        <div>
-            <h2 class="mb-0">Panel Administrativo</h2>
-            <p class="small-muted mb-0">Bienvenido — gestionar Productos, Clientes y Ventas</p>
+<div class="dashboard-container">
+    <!-- Welcome Banner -->
+    <div class="welcome-banner mb-4">
+        <div class="welcome-content">
+            <h2 class="welcome-title">
+                <i class="bi bi-shop me-2"></i>Bienvenido a Firmeza Store
+            </h2>
+            <p class="welcome-subtitle">Panel de Administración</p>
+        </div>
+        <div class="welcome-user">
+            <i class="bi bi-person-circle me-2"></i>
+            <span>@User.Identity?.Name</span>
         </div>
     </div>
 
-    <div class="header-actions">
-        <div class="kpi">
-            <span class="value">@DateTime.Now.ToString("dd MMM yyyy")</span>
-            <span class="label">Última sesión</span>
-        </div>
+    <h1 class="dashboard-title text-center mb-5">Dashboard Administrador</h1>
 
-        <!-- Botón de privacidad: si no existe ruta, redirige a Home/Privacy o a # -->
-        <a asp-controller="Home" asp-action="Privacy" class="btn btn-privacy ms-2">Privacy</a>
-
-        <!-- Botón de ayuda/soporte (solo visual) -->
-        <a href="#" class="btn btn-outline-secondary ms-2">Soporte</a>
-    </div>
-</div>
-
-<!-- AI Insight Section -->
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card card-modern border-0 shadow-sm" style="background: linear-gradient(135deg, #4e73df 0%, #224abe 100%); color: white;">
-            <div class="card-body p-4">
-                <div class="d-flex align-items-center">
-                    <div class="me-3">
-                        <i class="bi bi-robot" style="font-size: 2.5rem;"></i>
+    <div class="row g-4">
+        <!-- Clientes Card -->
+        <div class="col-md-6">
+            <div class="metric-card">
+                <div class="metric-header">
+                    <h5 class="metric-title">Clientes</h5>
+                </div>
+                <div class="metric-content">
+                    <div class="metric-value">@Model.ClientsCount.ToString("N0")</div>
+                    <div class="chart-container">
+                        <canvas id="clientsChart"></canvas>
                     </div>
-                    <div>
-                        <h4 class="card-title mb-1">Resumen del Día (AI Insight)</h4>
-                        <p class="card-text fs-5">
-                            @Model.AiInsightMessage
-                        </p>
-                        <small class="text-white-50">Datos en tiempo real</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Productos Card -->
+        <div class="col-md-6">
+            <div class="metric-card">
+                <div class="metric-header">
+                    <h5 class="metric-title">Productos</h5>
+                </div>
+                <div class="metric-content">
+                    <div class="metric-value">@Model.ProductsCount.ToString("N0")</div>
+                    <div class="chart-container">
+                        <canvas id="productsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ventas Card -->
+        <div class="col-md-12">
+            <div class="metric-card">
+                <div class="metric-header">
+                    <h5 class="metric-title">Ventas</h5>
+                </div>
+                <div class="metric-content">
+                    <div class="metric-value">$@Model.SalesTotalToday.ToString("N0")</div>
+                    <div class="chart-container">
+                        <canvas id="salesChart"></canvas>
                     </div>
                 </div>
             </div>
@@ -51,59 +69,91 @@
     </div>
 </div>
 
-<div class="row g-4">
-    <div class="col-md-4">
-        <a href="/Producto" class="text-decoration-none">
-            <div class="card card-modern h-100">
-                <div class="card-body text-center p-5">
-                    <div class="mb-3">
-                        <i class="bi bi-box-seam text-primary-custom" style="font-size: 3rem;"></i>
-                    </div>
-                    <h4 class="card-title text-dark">Productos</h4>
-                    <p class="card-text text-muted">Gestionar inventario, precios y stock.</p>
-                    <button class="btn btn-primary btn-modern mt-3">Ir a Productos</button>
-                </div>
-            </div>
-        </a>
-    </div>
+@section Scripts {
+    <script>
+        // Clientes Chart
+        new Chart(document.getElementById('clientsChart'), {
+            type: 'line',
+            data: {
+                labels: ['', '', '', '', '', '', ''],
+                datasets: [{
+                    data: [180, 200, 190, 220, 210, 240, @Model.ClientsCount],
+                    borderColor: '#4e73df',
+                    backgroundColor: 'rgba(78, 115, 223, 0.1)',
+                    fill: true,
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                animation: false,
+                plugins: { legend: { display: false } },
+                scales: { 
+                    x: { display: false }, 
+                    y: { display: false } 
+                },
+                elements: { 
+                    line: { tension: 0.4 }, 
+                    point: { radius: 0 } 
+                },
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
 
-    <div class="col-md-4">
-        <a href="/Clientes" class="text-decoration-none">
-            <div class="card card-modern h-100">
-                <div class="card-body text-center p-5">
-                    <div class="mb-3">
-                        <i class="bi bi-people text-success" style="font-size: 3rem;"></i>
-                    </div>
-                    <h4 class="card-title text-dark">Clientes</h4>
-                    <p class="card-text text-muted">Administrar base de datos de clientes.</p>
-                    <button class="btn btn-success btn-modern mt-3">Ir a Clientes</button>
-                </div>
-            </div>
-        </a>
-    </div>
+        // Productos Chart
+        new Chart(document.getElementById('productsChart'), {
+            type: 'line',
+            data: {
+                labels: ['', '', '', '', '', '', ''],
+                datasets: [{
+                    data: [800, 850, 900, 920, 950, 1000, @Model.ProductsCount],
+                    borderColor: '#1cc88a',
+                    backgroundColor: 'rgba(28, 200, 138, 0.1)',
+                    fill: true,
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                animation: false,
+                plugins: { legend: { display: false } },
+                scales: { 
+                    x: { display: false }, 
+                    y: { display: false } 
+                },
+                elements: { 
+                    line: { tension: 0.4 }, 
+                    point: { radius: 0 } 
+                },
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
 
-    <div class="col-md-4">
-        <a href="/Ventas" class="text-decoration-none">
-            <div class="card card-modern h-100">
-                <div class="card-body text-center p-5">
-                    <div class="mb-3">
-                        <i class="bi bi-receipt text-warning" style="font-size: 3rem;"></i>
-                    </div>
-                    <h4 class="card-title text-dark">Ventas</h4>
-                    <p class="card-text text-muted">Registrar ventas y ver reportes.</p>
-                    <button class="btn btn-warning btn-modern mt-3 text-white">Ir a Ventas</button>
-                </div>
-            </div>
-        </a>
-    </div>
-</div>
+        // Ventas Chart
+        const salesData = @Html.Raw(Json.Serialize(Model.SalesHistory));
+        const salesLabels = @Html.Raw(Json.Serialize(Model.SalesDates));
 
-<!-- Pequeño pie con copyright y enlace de privacidad -->
-<footer class="mt-4 text-muted small">
-    <div class="d-flex justify-content-between align-items-center">
-        <div>© @DateTime.Now.Year Firmeza. Todos los derechos reservados.</div>
-        <div>
-            <a asp-controller="Home" asp-action="Privacy">Privacy</a>
-        </div>
-    </div>
-</footer>
+        new Chart(document.getElementById('salesChart'), {
+            type: 'bar',
+            data: {
+                labels: salesLabels.length > 0 ? salesLabels : ['', '', '', ''],
+                datasets: [{
+                    data: salesData.length > 0 ? salesData : [18000, 22000, 24000, 25340],
+                    backgroundColor: '#ff6b6b',
+                    borderRadius: 4,
+                    barThickness: 40
+                }]
+            },
+            options: {
+                animation: false,
+                plugins: { legend: { display: false } },
+                scales: { 
+                    x: { display: false }, 
+                    y: { display: false } 
+                },
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+    </script>
+}
