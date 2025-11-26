@@ -11,22 +11,16 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ======================================
 // 1. BASE DE DATOS
-// ======================================
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
-// ======================================
 // 2. AUTOMAPPER
-// ======================================
 builder.Services.AddAutoMapper(typeof(Program));
 
-// ======================================
 // 3. CORS
-// ======================================
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -37,9 +31,7 @@ builder.Services.AddCors(options =>
     });
 });
 
-// ======================================
 // 4. JWT AUTHENTICATION
-// ======================================
 var jwtKey = builder.Configuration["Jwt:Key"];
 
 // Validar que Jwt:Key esté presente para evitar pasar null a Encoding.GetBytes
@@ -63,19 +55,19 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-// ======================================
+
 // 5. AUTORIZACIÓN
-// ======================================
+
 builder.Services.AddAuthorization();
 
-// ======================================
+
 // 6. CONTROLADORES
-// ======================================
+
 builder.Services.AddControllers();
 
-// ======================================
+
 // 7. IDENTITY
-// ======================================
+
 var identityBuilder = builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 {
     options.Password.RequireDigit = true;
@@ -88,15 +80,14 @@ identityBuilder.AddEntityFrameworkStores<ApplicationDbContext>();
 identityBuilder.AddDefaultTokenProviders();
 identityBuilder.AddSignInManager();
 
-// ======================================
+
 // 7.5. EMAIL SERVICE
-// ======================================
+
 builder.Services.Configure<Web.Api.Services.EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 builder.Services.AddTransient<Web.Api.Services.IEmailService, Web.Api.Services.SmtpEmailService>();
 
-// ======================================
 // 8. SWAGGER + JWT
-// ======================================
+
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen(c =>
@@ -126,14 +117,12 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// ======================================
 // 9. CONSTRUIR APP
-// ======================================
+
 var app = builder.Build();
 
-// ======================================
 // 10. MIDDLEWARE
-// ======================================
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

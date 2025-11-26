@@ -72,5 +72,17 @@ namespace AdminRazer.Controllers
 
             return View(model);
         }
+
+        [HttpPost]
+        public async Task<IActionResult> Chat([FromBody] AdminRazer.ViewModels.ChatRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.Question))
+            {
+                return BadRequest("La pregunta no puede estar vacía.");
+            }
+
+            var answer = await _aiService.ChatAsync(request.Question);
+            return Ok(new AdminRazer.ViewModels.ChatResponse { Answer = answer });
+        }
     }
 }
