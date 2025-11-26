@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OfficeOpenXml;
-using AdminRazer.Data;
 using AdminRazer.Models;
 using AdminRazer.ViewModels;
+using AdminRazer.Repositories.Interfaces;
 using System.Reflection; // added for reflection
 using System.Globalization;
 using System.Text;
@@ -14,19 +14,19 @@ namespace AdminRazer.Controllers
     [Authorize(Roles = "Administrador")]
     public class ProductoController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IProductoRepository _productoRepository;
         private readonly Services.IExcelImportService _excelImportService;
 
-        public ProductoController(ApplicationDbContext context, Services.IExcelImportService excelImportService)
+        public ProductoController(IProductoRepository productoRepository, Services.IExcelImportService excelImportService)
         {
-            _context = context;
+            _productoRepository = productoRepository;
             _excelImportService = excelImportService;
         }
 
         // GET: Producto
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            var productos = _context.Productos.ToList();
+            var productos = await _productoRepository.GetAllAsync();
             return View(productos);
         }
 
@@ -64,11 +64,11 @@ namespace AdminRazer.Controllers
         }
 
         // GET: Producto/Details/5
-        public IActionResult Details(int? id)
+        public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();
 
-            var producto = _context.Productos.Find(id);
+            var producto = await _productoRepository.GetByIdAsync(id.Value);
             if (producto == null) return NotFound();
 
             // Mapear la entidad Producto al ProductoEditViewModel que espera la vista Details
@@ -93,7 +93,7 @@ namespace AdminRazer.Controllers
         // POST: Producto/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create(ProductoCreateViewModel model)
+        public async Task<IActionResult> Create(ProductoCreateViewModel model)
         {
             if (ModelState.IsValid)
             {
@@ -104,19 +104,19 @@ namespace AdminRazer.Controllers
                     Precio = model.Precio,
                     Stock = model.Stock
                 };
-                _context.Productos.Add(producto);
-                _context.SaveChanges();
+                await _productoRepository.AddAsync(producto);
+                await _productoRepository.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
             return View(model);
         }
 
         // GET: Producto/Edit/5
-        public IActionResult Edit(int? id)
+        public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
 
-            var producto = _context.Productos.Find(id);
+            var producto = await _productoRepository.GetByIdAsync(id.Value);
             if (producto == null) return NotFound();
 
             var vm = new ProductoEditViewModel
@@ -134,11 +134,11 @@ namespace AdminRazer.Controllers
         // POST: Producto/Edit
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Edit(ProductoEditViewModel model)
+        public async Task<IActionResult> Edit(ProductoEditViewModel model)
         {
             if (ModelState.IsValid)
             {
-                var producto = _context.Productos.Find(model.Id);
+                var producto = await _productoRepository.GetByIdAsync(model.Id);
                 if (producto == null) return NotFound();
 
                 // Mapear sólo las propiedades permitidas
@@ -147,19 +147,19 @@ namespace AdminRazer.Controllers
                 producto.Precio = model.Precio;
                 producto.Stock = model.Stock;
 
-                _context.Productos.Update(producto);
-                _context.SaveChanges();
+                _productoRepository.Update(producto);
+                await _productoRepository.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
             return View(model);
         }
 
         // GET: Producto/Delete/5
-        public IActionResult Delete(int? id)
+        public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
 
-            var producto = _context.Productos.Find(id);
+            var producto = await _productoRepository.GetByIdAsync(id.Value);
             if (producto == null) return NotFound();
 
             var vm = new AdminRazer.ViewModels.ProductoEditViewModel
@@ -178,7 +178,7 @@ namespace AdminRazer.Controllers
         // POST: Producto/Delete
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public IActionResult DeleteConfirmed(int id)
+        public async Task<IActionResult> DeleteConfirmed(int id)
         {
             // El controlador ya protege con [Authorize(Roles = "Administrador")].
             // Hacemos una comprobación de seguridad adicional por si acaso.
@@ -187,11 +187,11 @@ namespace AdminRazer.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            var producto = _context.Productos.Find(id);
+            var producto = await _productoRepository.GetByIdAsync(id);
             if (producto == null) return NotFound();
 
-            _context.Productos.Remove(producto);
-            _context.SaveChanges();
+            _productoRepository.Remove(producto);
+            await _productoRepository.SaveChangesAsync();
 
             return RedirectToAction(nameof(Index));
         }

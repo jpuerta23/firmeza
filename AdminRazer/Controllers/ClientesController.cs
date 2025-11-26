@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using AdminRazer.Data;
 using AdminRazer.Models;
 using AdminRazer.ViewModels;
+using AdminRazer.Repositories.Interfaces;
 using Microsoft.AspNetCore.Identity;
 
 namespace AdminRazer.Controllers
@@ -11,19 +11,19 @@ namespace AdminRazer.Controllers
     [Authorize(Roles = "Administrador")]
     public class ClientesController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IClienteRepository _clienteRepository;
         private readonly UserManager<IdentityUser> _userManager;
 
-        public ClientesController(ApplicationDbContext context, UserManager<IdentityUser> userManager)
+        public ClientesController(IClienteRepository clienteRepository, UserManager<IdentityUser> userManager)
         {
-            _context = context;
+            _clienteRepository = clienteRepository;
             _userManager = userManager;
         }
 
         // GET: Clientes
         public async Task<IActionResult> Index()
         {
-            var clientes = await _context.Clientes.ToListAsync();
+            var clientes = await _clienteRepository.GetAllAsync();
             return View(clientes);
         }
 
@@ -32,8 +32,7 @@ namespace AdminRazer.Controllers
         {
             if (id == null) return NotFound();
 
-            var cliente = await _context.Clientes
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var cliente = await _clienteRepository.GetByIdAsync(id.Value);
             if (cliente == null) return NotFound();
 
             // Mapear la entidad Cliente al ClienteEditViewModel esperado por la vista Details
@@ -115,8 +114,8 @@ namespace AdminRazer.Controllers
                     }
                 }
 
-                _context.Add(cliente);
-                await _context.SaveChangesAsync();
+                await _clienteRepository.AddAsync(cliente);
+                await _clienteRepository.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
             return View(model);
@@ -127,7 +126,7 @@ namespace AdminRazer.Controllers
         {
             if (id == null) return NotFound();
 
-            var cliente = await _context.Clientes.FindAsync(id);
+            var cliente = await _clienteRepository.GetByIdAsync(id.Value);
             if (cliente == null) return NotFound();
 
             var vm = new ClienteEditViewModel
@@ -153,7 +152,7 @@ namespace AdminRazer.Controllers
             {
                 try
                 {
-                    var cliente = await _context.Clientes.FindAsync(model.Id);
+                    var cliente = await _clienteRepository.GetByIdAsync(model.Id);
                     if (cliente == null) return NotFound();
 
                     cliente.Nombre = model.Nombre;
@@ -229,12 +228,12 @@ namespace AdminRazer.Controllers
                         }
                     }
 
-                    _context.Update(cliente);
-                    await _context.SaveChangesAsync();
+                    _clienteRepository.Update(cliente);
+                    await _clienteRepository.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!_context.Clientes.Any(e => e.Id == model.Id))
+                    if (!await _clienteRepository.AnyAsync(e => e.Id == model.Id))
                         return NotFound();
                     else
                         throw;
@@ -253,8 +252,7 @@ namespace AdminRazer.Controllers
             }
             if (id == null) return NotFound();
 
-            var cliente = await _context.Clientes
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var cliente = await _clienteRepository.GetByIdAsync(id.Value);
             if (cliente == null) return NotFound();
 
             var vm = new ClienteEditViewModel
@@ -278,11 +276,11 @@ namespace AdminRazer.Controllers
             {
                 return RedirectToAction("Index", "Home");
             }
-            var cliente = await _context.Clientes.FindAsync(id);
+            var cliente = await _clienteRepository.GetByIdAsync(id);
             if (cliente != null)
             {
-                _context.Clientes.Remove(cliente);
-                await _context.SaveChangesAsync();
+                _clienteRepository.Remove(cliente);
+                await _clienteRepository.SaveChangesAsync();
             }
             return RedirectToAction(nameof(Index));
         }

@@ -2,8 +2,8 @@
 // csharp
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using AdminRazer.Data;
 using Microsoft.AspNetCore.Authorization;
+using AdminRazer.Repositories.Interfaces;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using System.Globalization;
@@ -15,21 +15,18 @@ namespace AdminRazer.Controllers
     [Authorize(Roles = "Administrador")]
     public class VentasController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IVentaRepository _ventaRepository;
 
-        public VentasController(ApplicationDbContext context)
+        public VentasController(IVentaRepository ventaRepository)
         {
-            _context = context;
+            _ventaRepository = ventaRepository;
         }
 
         // GET: Ventas
         public async Task<IActionResult> Index()
         {
             // Incluir Cliente y Detalles para que las vistas puedan acceder a sus propiedades
-            var ventas = await _context.Ventas
-                .Include(v => v.Cliente)
-                .Include(v => v.Detalles)
-                .ToListAsync();
+            var ventas = await _ventaRepository.GetAllWithClienteAsync();
 
             return View(ventas);
         }
@@ -38,12 +35,7 @@ namespace AdminRazer.Controllers
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();
-
-            var venta = await _context.Ventas
-                .Include(v => v.Cliente)
-                .Include(v => v.Detalles)
-                .ThenInclude(d => d.Producto)
-                .FirstOrDefaultAsync(v => v.Id == id);
+            var venta = await _ventaRepository.GetWithClienteAsync(id.Value);
 
             if (venta == null) return NotFound();
 
@@ -74,11 +66,7 @@ namespace AdminRazer.Controllers
         {
             if (id == null) return NotFound();
 
-            var venta = await _context.Ventas
-                .Include(v => v.Cliente)
-                .Include(v => v.Detalles)
-                .ThenInclude(d => d.Producto)
-                .FirstOrDefaultAsync(v => v.Id == id);
+            var venta = await _ventaRepository.GetWithClienteAsync(id.Value);
 
             if (venta == null) return NotFound();
 
@@ -107,11 +95,11 @@ namespace AdminRazer.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EliminarConfirmado(int id)
         {
-            var venta = await _context.Ventas.FindAsync(id);
+            var venta = await _ventaRepository.GetByIdAsync(id);
             if (venta != null)
             {
-                _context.Ventas.Remove(venta);
-                await _context.SaveChangesAsync();
+                _ventaRepository.Remove(venta);
+                await _ventaRepository.SaveChangesAsync();
             }
             return RedirectToAction(nameof(Index));
         }
@@ -124,12 +112,9 @@ namespace AdminRazer.Controllers
         [HttpGet]
         public async Task<IActionResult> DescargarTodas()
         {
-            var ventas = await _context.Ventas
-                .Include(v => v.Cliente)
-                .Include(v => v.Detalles)
-                .ThenInclude(d => d.Producto)
+            var ventas = (await _ventaRepository.GetAllWithClienteAsync())
                 .OrderBy(v => v.Fecha)
-                .ToListAsync();
+                .ToList();
 
             var pdfBytes = BuildVentasPdf(ventas, null);
             var fileName = $"ventas_todas_{DateTime.Now:yyyyMMddHHmmss}.pdf";
@@ -160,12 +145,9 @@ namespace AdminRazer.Controllers
             var inicio = DateTime.SpecifyKind(inicioLocal, DateTimeKind.Utc);
 
             // Obtener ventas primero y filtrar en memoria para evitar pasar DateTime con Kind=Unspecified a Npgsql
-            var ventasTodas = await _context.Ventas
-                .Include(v => v.Cliente)
-                .Include(v => v.Detalles)
-                .ThenInclude(d => d.Producto)
+            var ventasTodas = (await _ventaRepository.GetAllWithClienteAsync())
                 .OrderBy(v => v.Fecha)
-                .ToListAsync();
+                .ToList();
 
             // Filtrar en memoria comparando fechas en UTC
             var ventas = ventasTodas

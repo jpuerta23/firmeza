@@ -113,6 +113,11 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.Requ
 
 builder.Services.AddScoped<AdminRazer.Services.IExcelImportService, AdminRazer.Services.ExcelImportService>();
 
+// Register Repositories
+builder.Services.AddScoped<AdminRazer.Repositories.Interfaces.IClienteRepository, AdminRazer.Repositories.ClienteRepository>();
+builder.Services.AddScoped<AdminRazer.Repositories.Interfaces.IProductoRepository, AdminRazer.Repositories.ProductoRepository>();
+builder.Services.AddScoped<AdminRazer.Repositories.Interfaces.IVentaRepository, AdminRazer.Repositories.VentaRepository>();
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
