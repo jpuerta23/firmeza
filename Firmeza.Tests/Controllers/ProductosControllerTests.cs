@@ -1,8 +1,7 @@
-using AdminRazer.Data;
 using AdminRazer.Models;
+using AdminRazer.Repositories.Interfaces;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Moq;
 using Web.Api.Controllers;
 using Web.Api.DTOs;
@@ -16,34 +15,35 @@ public class ProductosControllerTests
     public async Task GetProductos_ReturnsOkResult_WithListOfProductos()
     {
         // Arrange
-        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseInMemoryDatabase(databaseName: "TestDb_Productos_Get")
-            .Options;
-
-        // Seed database
-        using (var context = new ApplicationDbContext(options))
-        {
-            context.Productos.Add(new Producto { Id = 1, Nombre = "Prod1", Precio = 10, Categoria = "Test" });
-            context.Productos.Add(new Producto { Id = 2, Nombre = "Prod2", Precio = 20, Categoria = "Test" });
-            await context.SaveChangesAsync();
-        }
-
-        // Mock Mapper
+        var mockRepository = new Mock<IProductoRepository>();
         var mockMapper = new Mock<IMapper>();
-        mockMapper.Setup(m => m.Map<IEnumerable<ProductoDto>>(It.IsAny<List<Producto>>()))
-            .Returns((List<Producto> src) => src.Select(p => new ProductoDto { Id = p.Id, Nombre = p.Nombre }).ToList());
 
-        using (var context = new ApplicationDbContext(options))
+        var productos = new List<Producto>
         {
-            var controller = new ProductosController(context, mockMapper.Object);
+            new Producto { Id = 1, Nombre = "Prod1", Precio = 10, Categoria = "Test" },
+            new Producto { Id = 2, Nombre = "Prod2", Precio = 20, Categoria = "Test" }
+        };
 
-            // Act
-            var result = await controller.GetProductos();
+        var productoDtos = new List<ProductoDto>
+        {
+            new ProductoDto { Id = 1, Nombre = "Prod1" },
+            new ProductoDto { Id = 2, Nombre = "Prod2" }
+        };
 
-            // Assert
-            var actionResult = Assert.IsType<OkObjectResult>(result.Result);
-            var returnValue = Assert.IsType<List<ProductoDto>>(actionResult.Value);
-            Assert.Equal(2, returnValue.Count);
-        }
+        mockRepository.Setup(repo => repo.GetAllAsync())
+            .ReturnsAsync(productos);
+
+        mockMapper.Setup(m => m.Map<IEnumerable<ProductoDto>>(It.IsAny<List<Producto>>()))
+            .Returns(productoDtos);
+
+        var controller = new ProductosController(mockRepository.Object, mockMapper.Object);
+
+        // Act
+        var result = await controller.GetProductos();
+
+        // Assert
+        var actionResult = Assert.IsType<OkObjectResult>(result.Result);
+        var returnValue = Assert.IsAssignableFrom<IEnumerable<ProductoDto>>(actionResult.Value);
+        Assert.Equal(2, returnValue.Count());
     }
 }
