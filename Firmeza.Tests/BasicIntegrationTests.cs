@@ -19,7 +19,7 @@ public class BasicIntegrationTests : IClassFixture<WebApplicationFactory<Program
         var client = _factory.CreateClient();
 
         // Act
-        var response = await client.GetAsync("/swagger/index.html");
+        var response = await client.GetAsync("/index.html"); // Swagger está en la raíz
 
         // Assert
         response.EnsureSuccessStatusCode(); // Status Code 200-299

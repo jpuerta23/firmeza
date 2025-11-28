@@ -134,8 +134,8 @@ public static class SeedData
         // Seed Productos
         if (!db.Productos.Any())
         {
-            db.Productos.Add(new Producto { Nombre = "Producto A", Precio = 10.5m });
-            db.Productos.Add(new Producto { Nombre = "Producto B", Precio = 25.0m });
+            db.Productos.Add(new Producto { Nombre = "Producto A", Categoria = "Electrónica", Precio = 10.5m, Stock = 100 });
+            db.Productos.Add(new Producto { Nombre = "Producto B", Categoria = "Ropa", Precio = 25.0m, Stock = 50 });
             await db.SaveChangesAsync();
         }
 

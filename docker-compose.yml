@@ -9,32 +9,15 @@ services:
     networks:
       - firmeza-net
 
-  db:
-    image: postgres:15
-    container_name: firmeza-db
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: firmeza_db
-    ports:
-      - "5433:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - firmeza-net
-    depends_on:
-      tests:
-        condition: service_completed_successfully
-
   web-api:
     build:
       context: .
       dockerfile: Web.Api/Dockerfile
     container_name: firmeza-api
-    depends_on:
-      - db
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
-      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=firmeza_db;Username=postgres;Password=password
+      - ConnectionStrings__DefaultConnection=Host=host.docker.internal;Port=5432;Database=Firmeza_Admi;Username=postgres;Password=Qwe.123*
       - Jwt__Key=SuperSecretKey1234567890_MustBeLongerThan32Chars
       - EmailSettings__SmtpServer=smtp.gmail.com
       - EmailSettings__SmtpPort=587
@@ -52,10 +35,10 @@ services:
       context: .
       dockerfile: AdminRazer/Dockerfile
     container_name: firmeza-admin
-    depends_on:
-      - db
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
-      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=firmeza_db;Username=postgres;Password=password
+      - ConnectionStrings__DefaultConnection=Host=host.docker.internal;Port=5432;Database=Firmeza_Admi;Username=postgres;Password=Qwe.123*
     ports:
       - "5001:80"
     networks:
@@ -70,12 +53,7 @@ services:
       - "4200:80"
     networks:
       - firmeza-net
-    depends_on:
-      - web-api
 
 networks:
   firmeza-net:
     driver: bridge
-
-volumes:
-  postgres_data:

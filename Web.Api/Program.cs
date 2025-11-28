@@ -131,12 +131,13 @@ var app = builder.Build();
 
 // 10. MIDDLEWARE
 
-if (app.Environment.IsDevelopment())
+// Habilitar Swagger en todos los entornos
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Firmeza API v1");
+    c.RoutePrefix = string.Empty; // Swagger en la raíz (http://localhost:5000)
+});
 
 app.UseHttpsRedirection();
 
