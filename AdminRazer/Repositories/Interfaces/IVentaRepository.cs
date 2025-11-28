@@ -11,5 +11,6 @@ namespace AdminRazer.Repositories.Interfaces
         Task<IEnumerable<Venta>> GetAllWithClienteAsync();
         Task<decimal> GetTotalByFechaAsync(DateTime fecha);
         Task<Dictionary<DateTime, decimal>> GetSalesHistoryAsync(DateTime startDate);
+        Task<IEnumerable<Venta>> GetRecentAsync(int count);
     }
 }

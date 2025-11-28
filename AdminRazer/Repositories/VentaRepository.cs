@@ -80,5 +80,16 @@ namespace AdminRazer.Repositories
                 .GroupBy(v => v.Fecha.Date)
                 .ToDictionary(g => g.Key, g => g.Sum(v => v.Total));
         }
+
+        public async Task<IEnumerable<Venta>> GetRecentAsync(int count)
+        {
+            return await _dbSet
+                .OrderByDescending(v => v.Fecha)
+                .Take(count)
+                .Include(v => v.Cliente)
+                .Include(v => v.Detalles)
+                    .ThenInclude(d => d.Producto)
+                .ToListAsync();
+        }
     }
 }

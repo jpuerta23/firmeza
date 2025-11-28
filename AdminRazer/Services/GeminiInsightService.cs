@@ -70,7 +70,7 @@ namespace AdminRazer.Services
 
                 var prompt =
                     $"Eres un asistente inteligente para el administrador de 'Firmeza'. " +
-                    $"Aquí tienes el contexto completo y actualizado de la tienda (productos, inventario, ventas históricas y ventas del día):\n\n" +
+                    $"Aquí tienes el contexto completo y actualizado de la tienda (productos, inventario y ventas recientes):\n\n" +
                     $"{context}\n\n" +
                     $"Pregunta del usuario: {question}\n" +
                     "Responde usando únicamente los datos del contexto. " +
@@ -108,9 +108,9 @@ namespace AdminRazer.Services
             // ==============================
             // TODAS LAS VENTAS
             // ==============================
-            sb.AppendLine("\n=== TODAS LAS VENTAS REGISTRADAS ===");
+            sb.AppendLine("\n=== ÚLTIMAS 50 VENTAS REGISTRADAS ===");
 
-            var ventas = await _ventaRepository.GetAllAsync(); // <- AQUÍ SE INCLUYEN TODAS
+            var ventas = await _ventaRepository.GetRecentAsync(50); // <- LIMITADO A 50 RECIENTES
 
             if (!ventas.Any())
             {
