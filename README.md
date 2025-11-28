@@ -12,14 +12,14 @@ The system is composed of three main projects and a PostgreSQL database.
 ```mermaid
 graph TD
     subgraph Frontend
-        Client[Angular Client]
-        Admin[AdminRazer Panel]
+        Client["Angular Client"]
+        Admin["AdminRazer Panel"]
     end
 
     subgraph Backend
-        API[Web API (.NET 8)]
-        DB[(PostgreSQL)]
-        SMTP[Email Service]
+        API["Web API (.NET 8)"]
+        DB[("PostgreSQL")]
+        SMTP["Email Service"]
     end
 
     Client -->|HTTP/REST| API
