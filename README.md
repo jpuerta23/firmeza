@@ -162,7 +162,7 @@ docker compose up --build
 
 Once the containers are running (check with `docker ps`), you can access:
 
--   **Web API (Backend)**: [http://localhost:5000/swagger](http://localhost:5000/swagger)
+-   **Web API (Backend)**: [http://localhost:5000](http://localhost:5000)
 -   **Admin Panel (Management)**: [http://localhost:5001](http://localhost:5001)
 -   **Client (Storefront)**: [http://localhost:4200](http://localhost:4200)
 -   **Database**: localhost:5433 (External port if mapped)
