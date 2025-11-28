@@ -51,6 +51,12 @@ namespace AdminRazer.Areas.Identity.Pages.Account
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
 
             ReturnUrl = returnUrl;
+
+            Input = new InputModel
+            {
+                Email = "admin@admin.com",
+                Password = "Admin123!"
+            };
         }
 
         public async Task<IActionResult> OnPostAsync(string returnUrl = null)
