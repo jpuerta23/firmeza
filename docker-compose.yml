@@ -17,7 +17,7 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     environment:
-      - ConnectionStrings__DefaultConnection=Host=host.docker.internal;Port=5432;Database=Firmeza_Admi;Username=postgres;Password=Qwe.123*
+      - ConnectionStrings__DefaultConnection=Host=dpg-d4kvj7qli9vc73e0ta20-a.oregon-postgres.render.com;Database=firmeza;Username=posgress;Password=bc1Ijfn2RoutFbciGVuIDnTenIW0hGVM;SSL Mode=Require;Trust Server Certificate=true
       - Jwt__Key=SuperSecretKey1234567890_MustBeLongerThan32Chars
       - EmailSettings__SmtpServer=smtp.gmail.com
       - EmailSettings__SmtpPort=587
@@ -38,7 +38,7 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     environment:
-      - ConnectionStrings__DefaultConnection=Host=host.docker.internal;Port=5432;Database=Firmeza_Admi;Username=postgres;Password=Qwe.123*
+      - ConnectionStrings__DefaultConnection=Host=dpg-d4kvj7qli9vc73e0ta20-a.oregon-postgres.render.com;Database=firmeza;Username=posgress;Password=bc1Ijfn2RoutFbciGVuIDnTenIW0hGVM;SSL Mode=Require;Trust Server Certificate=true
     ports:
       - "5001:80"
     networks:
