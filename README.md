@@ -167,7 +167,6 @@ Once the containers are running (check with `docker ps`), you can access:
 -   **Client (Storefront)**: [http://localhost:4200](http://localhost:4200)
 -   **Database**: localhost:5433 (External port if mapped)
 
-
 ### Manual Setup
 
 If you prefer to run projects individually:
