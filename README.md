@@ -1,4 +1,5 @@
 # Firmeza Store System
+**Author:** JHON FREDDY PUERTA MENDOZA
 
 A comprehensive e-commerce solution featuring a modern Angular storefront, a robust .NET Web API, and an administrative dashboard.
 
@@ -44,7 +45,33 @@ graph TD
 
 ## 🔄 Purchase Flow
 
-The following sequence diagram illustrates the process when a user makes a purchase.
+The following sequence diagrams illustrate key processes in the system.
+
+### Product Lifecycle Sequence Diagram
+
+This diagram shows how a product is created by the Admin and then viewed by the Client.
+
+```mermaid
+sequenceDiagram
+    actor Admin
+    participant AdminPanel as Admin Panel
+    participant API as Web API
+    participant DB as Database
+    actor Client as Customer
+
+    %% Admin creates product
+    Admin->>AdminPanel: Login & Navigate to Products
+    Admin->>AdminPanel: Create New Product (Name, Price, Stock)
+    AdminPanel->>DB: INSERT into Productos
+    DB-->>AdminPanel: Success
+    AdminPanel-->>Admin: Show "Product Created"
+
+    %% Client views product
+    Client->>API: GET /api/productos
+    API->>DB: SELECT * FROM Productos
+    DB-->>API: List of Products
+    API-->>Client: JSON [Products]
+```
 
 ### Purchase Sequence Diagram
 
@@ -118,22 +145,27 @@ The easiest way to run the entire system is using Docker Compose.
 ### Run with Docker
 
 1.  **Clone the repository**.
-2.  **Configure SMTP**: Update `Web.Api/appsettings.json` or the `docker-compose.yml` environment variables with your real SMTP credentials.
+2.  **Configure Environment**:
+    -   Ensure `docker-compose.yml` has the correct connection string format for PostgreSQL (ADO.NET format).
+    -   Update SMTP settings if you need email functionality.
 3.  **Run the stack**:
 
 ```bash
 docker compose up --build
 ```
 
-This will automatically:
-1.  Run the **Automated Tests**.
-2.  If tests pass, start the **Database**, **API**, **Admin**, and **Client**.
+4.  **Troubleshooting**:
+    -   If you see `System.ArgumentException` regarding the connection string, ensure you are NOT using the `postgresql://` URI format. Use `Host=...;Database=...;Username=...;Password=...` instead.
+    -   If ports are in use, modify the `ports` section in `docker-compose.yml`.
 
-Access the services at:
-- **Web API**: http://localhost:5000
-- **Admin Panel**: http://localhost:5001
-- **Client**: http://localhost:4200
-- **Database**: localhost:5433
+### Access the Services
+
+Once the containers are running (check with `docker ps`), you can access:
+
+-   **Web API (Backend)**: [http://localhost:5000/swagger](http://localhost:5000/swagger)
+-   **Admin Panel (Management)**: [http://localhost:5001](http://localhost:5001)
+-   **Client (Storefront)**: [http://localhost:4200](http://localhost:4200)
+-   **Database**: localhost:5433 (External port if mapped)
 
 ### Manual Setup
 
